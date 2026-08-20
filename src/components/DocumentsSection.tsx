@@ -14,6 +14,8 @@ type Props = {
 export function DocumentsSection({ documents, stats, onImageView, onLike }: Props) {
   const { lang, t } = useApp();
   const [expanded, setExpanded] = useState(false);
+  const [localViews, setLocalViews] = useState<Record<string, number>>({});
+
   const [likedItems, setLikedItems] = useState<Set<string>>(() => {
     const stored = localStorage.getItem('likedDocs');
     return new Set(stored ? JSON.parse(stored) : []);
@@ -22,6 +24,15 @@ export function DocumentsSection({ documents, stats, onImageView, onLike }: Prop
 
   const publishedDocs = documents.filter((d) => d.published);
   const visibleDocs = expanded ? publishedDocs : publishedDocs.slice(0, initialShow);
+
+  const handleImageClick = (itemId: string, images: string[], index: number) => {
+    if (images.length > 0) {
+      onImageView(itemId, images, index);
+      if (!localViews[itemId]) {
+        setLocalViews(prev => ({ ...prev, [itemId]: 1 }));
+      }
+    }
+  };
 
   const toggleLike = (e: React.MouseEvent, itemId: string) => {
     e.preventDefault();
@@ -51,17 +62,18 @@ export function DocumentsSection({ documents, stats, onImageView, onLike }: Prop
           const itemId = `doc_${doc.id}`;
           const stat = stats[itemId];
           const isLiked = likedItems.has(itemId);
-          const images = doc.images || [];
+          const displayViews = (stat?.views || 0) + (localViews[itemId] || 0);
 
           return (
             <Reveal key={doc.id}>
               <DocCard 
                 doc={doc} 
-                images={images} 
-                stat={stat} 
+                images={doc.images || []} 
+                views={displayViews}
+                likes={stat?.likes || 0}
                 isLiked={isLiked} 
                 lang={lang} 
-                onImageView={() => images.length > 0 && onImageView(itemId, images, 0)} 
+                onImageView={() => handleImageClick(itemId, doc.images || [], 0)} 
                 onLike={(e: any) => toggleLike(e, itemId)} 
               />
             </Reveal>
@@ -88,7 +100,7 @@ export function DocumentsSection({ documents, stats, onImageView, onLike }: Prop
   );
 }
 
-function DocCard({ doc, images, stat, isLiked, lang, onImageView, onLike }: any) {
+function DocCard({ doc, images, views, likes, isLiked, lang, onImageView, onLike }: any) {
   const [sliderIdx, setSliderIdx] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -146,14 +158,14 @@ function DocCard({ doc, images, stat, isLiked, lang, onImageView, onLike }: any)
         <div className="flex justify-between items-center mt-2 sm:mt-3">
           <div className="flex gap-2 sm:gap-3 text-[10px] sm:text-sm text-[var(--text-muted)] items-center">
             <span className="inline-flex items-center gap-1">
-              <Eye size={12} className="sm:w-[14px] sm:h-[14px]" /> {(stat?.views || 0).toLocaleString()}
+              <Eye size={12} className="sm:w-[14px] sm:h-[14px]" /> {views.toLocaleString()}
             </span>
             <button
               onClick={onLike}
               className="inline-flex items-center gap-1 cursor-pointer transition-colors"
               style={{ color: isLiked ? '#f43f5e' : undefined }}
             >
-              <Heart size={12} className="sm:w-[14px] sm:h-[14px]" fill={isLiked ? '#f43f5e' : 'none'} /> {(stat?.likes || 0).toLocaleString()}
+              <Heart size={12} className="sm:w-[14px] sm:h-[14px]" fill={isLiked ? '#f43f5e' : 'none'} /> {likes.toLocaleString()}
             </button>
           </div>
           {images.length > 0 && (
