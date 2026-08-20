@@ -15,6 +15,8 @@ export function ProjectsSection({ projects, stats, onImageView, onLike }: Props)
   const { lang, t } = useApp();
   const [filter, setFilter] = useState('all');
   const [expanded, setExpanded] = useState(false);
+  const [localViews, setLocalViews] = useState<Record<string, number>>({});
+  
   const [likedItems, setLikedItems] = useState<Set<string>>(() => {
     try {
       const stored = localStorage.getItem('likedProjects');
@@ -39,6 +41,15 @@ export function ProjectsSection({ projects, stats, onImageView, onLike }: Props)
     { id: 'ui', label: 'UI Design', labelKm: 'ការរចនា UI' },
     { id: 'fullstack', label: 'Fullstack', labelKm: 'ហ្វូលស្ដាក' },
   ];
+
+  const handleImageClick = (itemId: string, images: string[], index: number) => {
+    if (images.length > 0) {
+      onImageView(itemId, images, index);
+      if (!localViews[itemId]) {
+        setLocalViews(prev => ({ ...prev, [itemId]: 1 }));
+      }
+    }
+  };
 
   const toggleLike = (e: React.MouseEvent, itemId: string) => {
     e.preventDefault();
@@ -93,16 +104,18 @@ export function ProjectsSection({ projects, stats, onImageView, onLike }: Props)
           const itemId = `project_${project.id}`;
           const stat = stats[itemId];
           const isLiked = likedItems.has(itemId);
+          const displayViews = (stat?.views || 0) + (localViews[itemId] || 0);
 
           return (
             <Reveal key={project.id}>
               <ProjectCard
                 project={project}
                 lang={lang}
-                stat={stat}
+                views={displayViews}
+                likes={stat?.likes || 0}
                 isLiked={isLiked}
                 t={t}
-                onImageView={() => project.images?.length > 0 && onImageView(itemId, project.images, 0)}
+                onImageView={() => handleImageClick(itemId, project.images || [], 0)}
                 onLike={(e: any) => toggleLike(e, itemId)}
               />
             </Reveal>
@@ -129,7 +142,7 @@ export function ProjectsSection({ projects, stats, onImageView, onLike }: Props)
   );
 }
 
-function ProjectCard({ project, lang, stat, isLiked, t, onImageView, onLike }: any) {
+function ProjectCard({ project, lang, views, likes, isLiked, t, onImageView, onLike }: any) {
   const images = project.images || [];
   const [sliderIdx, setSliderIdx] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -203,14 +216,14 @@ function ProjectCard({ project, lang, stat, isLiked, t, onImageView, onLike }: a
           </a>
           <div className="flex gap-3 text-sm text-[var(--text-muted)] items-center">
             <span className="inline-flex items-center gap-1.5">
-              <Eye size={14} /> {(stat?.views || 0).toLocaleString()}
+              <Eye size={14} /> {views.toLocaleString()}
             </span>
             <button
               onClick={onLike}
               className="inline-flex items-center gap-1.5 cursor-pointer transition-colors"
               style={{ color: isLiked ? '#f43f5e' : undefined }}
             >
-              <Heart size={14} fill={isLiked ? '#f43f5e' : 'none'} /> {(stat?.likes || 0).toLocaleString()}
+              <Heart size={14} fill={isLiked ? '#f43f5e' : 'none'} /> {likes.toLocaleString()}
             </button>
           </div>
         </div>
