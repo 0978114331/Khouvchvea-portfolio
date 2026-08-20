@@ -497,7 +497,6 @@ function SkillsTab({ categories, showToast, logAction, refetch }: any) {
   const addCategory = async () => {
     if (!catForm.title_en) { showToast('Title required', 'error'); return; }
     
-    // បង្កើត ID ថ្មីដោយស្វ័យប្រវត្តិ ដើម្បីកុំឲ្យ Error "Failed"
     const newId = `cat-${Date.now()}`;
     
     const { error } = await supabase.from('skill_categories').insert({ 
@@ -562,8 +561,6 @@ function SkillsTab({ categories, showToast, logAction, refetch }: any) {
           <div className="grid sm:grid-cols-3 gap-3">
             <Field label="Category Title (EN)"><input className="form-input" value={catForm.title_en} onChange={(e) => setCatForm({ ...catForm, title_en: e.target.value })} /></Field>
             <Field label="Category Title (KM)"><input className="form-input" value={catForm.title_km} onChange={(e) => setCatForm({ ...catForm, title_km: e.target.value })} /></Field>
-            
-            {/* ប្តូរទៅជា Dropdown */}
             <Field label="Select Icon">
               <select className="form-input" value={catForm.icon} onChange={(e) => setCatForm({ ...catForm, icon: e.target.value })}>
                 <option value="laptop-code">💻 Web & Code (laptop-code)</option>
@@ -599,9 +596,9 @@ function SkillsTab({ categories, showToast, logAction, refetch }: any) {
             </div>
             {skillForm?.categoryId === cat.id ? (
               <div className="flex gap-2 mt-2">
-                <input className="form-input flex-1" placeholder="Skill (EN)" value={skillForm.name_en} onChange={(e) => setSkillForm({ ...skillForm, name_en: e.target.value })} />
-                <input className="form-input flex-1" placeholder="Skill (KM)" value={skillForm.name_km} onChange={(e) => setSkillForm({ ...skillForm, name_km: e.target.value })} />
-                <input className="form-input w-16" type="number" min={0} max={100} value={skillForm.percentage} onChange={(e) => setSkillForm({ ...skillForm, percentage: parseInt(e.target.value) || 0 })} />
+                <input className="form-input flex-1" placeholder="Skill (EN)" value={skillForm?.name_en || ''} onChange={(e) => skillForm && setSkillForm({ ...skillForm, name_en: e.target.value })} />
+                <input className="form-input flex-1" placeholder="Skill (KM)" value={skillForm?.name_km || ''} onChange={(e) => skillForm && setSkillForm({ ...skillForm, name_km: e.target.value })} />
+                <input className="form-input w-16" type="number" min={0} max={100} value={skillForm?.percentage || 0} onChange={(e) => skillForm && setSkillForm({ ...skillForm, percentage: parseInt(e.target.value) || 0 })} />                
                 <button onClick={addSkill} className="btn-gradient px-3 py-2 rounded-lg text-sm font-semibold">Add</button>
               </div>
             ) : (
@@ -888,7 +885,7 @@ function ToolsTab({ tools, showToast, logAction, refetch }: any) {
   return (
     <div className="grid sm:grid-cols-2 gap-4">
       {tools.map((tool: any) => (
-        <ToolCard key={tool.id} tool={tool} onToggle={() => toggle(tool)} onSave={(nameEn, nameKm, descEn, descKm) => save(tool, nameEn, nameKm, descEn, descKm)} />
+        <ToolCard key={tool.id} tool={tool} onToggle={() => toggle(tool)} onSave={(nameEn: string, nameKm: string, descEn: string, descKm: string) => save(tool, nameEn, nameKm, descEn, descKm)} />
       ))}
     </div>
   );
