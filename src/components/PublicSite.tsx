@@ -20,7 +20,7 @@ type Props = {
 };
 
 export function PublicSite({ onAdminClick }: Props) {
-  // ប្រើប្រាស់ `session` ពី Supabase Authentication
+  // ប្រើ session ដើម្បីទាញយកទិន្នន័យអ្នកដែលបាន Login ពី Supabase ផ្ទាល់
   const { session } = useAuth();
   
   const {
@@ -98,7 +98,7 @@ export function PublicSite({ onAdminClick }: Props) {
       <div className="glow-blob glow-1" />
       <div className="glow-blob glow-2" />
 
-      {/* បញ្ជូន onAdminClick ទៅ Navbar តែនៅពេលដែលមាន session ត្រឹមត្រូវប៉ុណ្ណោះ */}
+      {/* បើ session មានទិន្នន័យ (មានន័យថា Email គាត់មានក្នុង Supabase) ទើបបង្ហាញប៊ូតុង */}
       <Navbar onAdminClick={session ? onAdminClick : undefined} />
 
       {hero && <HeroSection hero={hero} visitorCount={visitorCount || 0} />}
