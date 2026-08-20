@@ -104,7 +104,7 @@ export function HeroSection({ hero, visitorCount }: { hero: Hero; visitorCount: 
       </div>
 
       <a href="#about" className="absolute bottom-4 lg:bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5 text-[var(--text-muted)] text-xs font-bold tracking-wider no-underline z-20">
-        {t('SCROLL DOWN', 'រំកិលចុះក្រោម')}
+        {t('SCROLL DOWN', '')}
         <ChevronDown size={16} className="animate-bounce-icon" />
       </a>
     </section>
