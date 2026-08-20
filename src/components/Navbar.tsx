@@ -3,7 +3,7 @@ import { Menu, X, Moon, Sun, Shield, Globe } from 'lucide-react';
 import { useApp } from '@/lib/app-context';
 
 type Props = {
-  onAdminClick: () => void;
+  onAdminClick?: () => void;
 };
 
 export function Navbar({ onAdminClick }: Props) {
@@ -46,7 +46,6 @@ export function Navbar({ onAdminClick }: Props) {
       }}
     >
       <nav className="max-w-[1240px] mx-auto px-4 sm:px-8 py-4 flex justify-between items-center">
-        {/* រចនាពណ៌ Logo (KHOUV ពណ៌ស និង CHVEA ជាពណ៌ Gradient) */}
         <a href="#home" className="text-xl sm:text-2xl font-extrabold flex items-center tracking-tight">
           <span style={{ color: 'var(--text-main)' }}>KHOUV</span>
           <span className="gradient-text ml-1" style={{ paddingRight: '2px' }}>CHVEA</span>
@@ -91,13 +90,15 @@ export function Navbar({ onAdminClick }: Props) {
             {theme === 'dark' ? <Moon size={16} /> : <Sun size={16} />}
           </button>
 
-          <button
-            onClick={onAdminClick}
-            className="hidden sm:flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold text-white transition-all duration-300 hover:-translate-y-0.5"
-            style={{ background: 'var(--bg-code)' }}
-          >
-            <Shield size={14} /> Admin
-          </button>
+          {onAdminClick && (
+            <button
+              onClick={onAdminClick}
+              className="hidden sm:flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold text-white transition-all duration-300 hover:-translate-y-0.5"
+              style={{ background: 'var(--bg-code)' }}
+            >
+              <Shield size={14} /> Admin
+            </button>
+          )}
 
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
@@ -123,11 +124,17 @@ export function Navbar({ onAdminClick }: Props) {
               </a>
             </li>
           ))}
-          <li>
-            <button onClick={() => { setMobileOpen(false); onAdminClick(); }} className="flex items-center gap-1.5 py-3 text-sm font-bold" style={{ color: 'var(--primary)' }}>
-              <Shield size={14} /> Admin Login
-            </button>
-          </li>
+          {onAdminClick && (
+            <li>
+              <button 
+                onClick={() => { setMobileOpen(false); onAdminClick(); }} 
+                className="flex items-center gap-1.5 py-3 text-sm font-bold" 
+                style={{ color: 'var(--primary)' }}
+              >
+                <Shield size={14} /> Admin Login
+              </button>
+            </li>
+          )}
         </ul>
       )}
     </header>

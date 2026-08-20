@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { HeroSection } from '@/components/HeroSection';
 import { AboutSection } from '@/components/AboutSection';
@@ -12,27 +12,52 @@ import { ChatAssistant } from '@/components/ChatAssistant';
 import { ConverterModal } from '@/components/ConverterModal';
 import { OcrModal } from '@/components/OcrModal';
 import { usePortfolioData } from '@/lib/use-portfolio-data';
+import { useAuth } from '@/lib/auth';
+import { supabase } from '@/lib/supabase';
 
 type Props = {
   onAdminClick: () => void;
 };
 
 export function PublicSite({ onAdminClick }: Props) {
+  // ប្រើប្រាស់ `session` ពី Supabase Authentication
+  const { session } = useAuth();
+  
   const {
     settings, hero, about, skillCategories, projects, documents, tools,
     chatSettings, visitorCount, stats, loading,
-    incrementView, toggleLike,
+    incrementView, toggleLike, refetch
   } = usePortfolioData();
 
   const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null);
   const [converterOpen, setConverterOpen] = useState(false);
   const [ocrOpen, setOcrOpen] = useState(false);
 
-  // កែប្រែ: បន្ថែម itemId ដើម្បីដំណើរការការបូកចំនួនអ្នកមើល
+  useEffect(() => {
+    const channel = supabase
+      .channel('public-db-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public' },
+        () => {
+          if (refetch) {
+            refetch();
+          } else {
+            window.location.reload();
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [refetch]);
+
   const handleImageView = (itemId: string, images: string[], index: number) => {
     if (images.length > 0) {
       setLightbox({ images, index });
-      incrementView(itemId); // <== បូកចំនួនអ្នកមើលពេលចុចកាត
+      incrementView(itemId);
     }
   };
 
@@ -45,7 +70,10 @@ export function PublicSite({ onAdminClick }: Props) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-base)' }}>
         <div className="text-center">
-          <div className="w-12 h-12 rounded-full border-4 mx-auto mb-4 animate-spin" style={{ borderTopColor: 'var(--primary)', borderColor: 'var(--border-color)' }} />
+          <div 
+            className="w-12 h-12 rounded-full border-4 mx-auto mb-4 animate-spin" 
+            style={{ borderTopColor: 'var(--primary)', borderColor: 'var(--border-color)' }} 
+          />
           <p style={{ color: 'var(--text-muted)' }}>Loading...</p>
         </div>
       </div>
@@ -70,7 +98,8 @@ export function PublicSite({ onAdminClick }: Props) {
       <div className="glow-blob glow-1" />
       <div className="glow-blob glow-2" />
 
-      <Navbar onAdminClick={onAdminClick} />
+      {/* បញ្ជូន onAdminClick ទៅ Navbar តែនៅពេលដែលមាន session ត្រឹមត្រូវប៉ុណ្ណោះ */}
+      <Navbar onAdminClick={session ? onAdminClick : undefined} />
 
       {hero && <HeroSection hero={hero} visitorCount={visitorCount || 0} />}
 
@@ -78,21 +107,46 @@ export function PublicSite({ onAdminClick }: Props) {
 
       {about && (
         <section id="documents" className="max-w-[1240px] mx-auto px-4 sm:px-8 py-16 sm:py-24">
-          <DocumentsSection documents={documents || []} stats={stats || {}} onImageView={handleImageView} onLike={toggleLike} />
+          <DocumentsSection 
+            documents={documents || []} 
+            stats={stats || {}} 
+            onImageView={handleImageView} 
+            onLike={toggleLike} 
+          />
         </section>
       )}
 
       <SkillsSection categories={skillCategories || []} />
 
-      <ProjectsSection projects={projects || []} stats={stats || {}} onImageView={handleImageView} onLike={toggleLike} />
+      <ProjectsSection 
+        projects={projects || []} 
+        stats={stats || {}} 
+        onImageView={handleImageView} 
+        onLike={toggleLike} 
+      />
 
       <ContactSection settings={settings} />
 
       <Footer settings={settings} visitorCount={visitorCount || 0} />
 
-      <ChatAssistant chatSettings={chatSettings} hero={hero} about={about} skillCategories={skillCategories || []} projects={projects || []} documents={documents || []} tools={tools || []} />
+      <ChatAssistant 
+        chatSettings={chatSettings} 
+        hero={hero} 
+        about={about} 
+        skillCategories={skillCategories || []} 
+        projects={projects || []} 
+        documents={documents || []} 
+        tools={tools || []} 
+      />
 
-      {lightbox && <Lightbox images={lightbox.images} index={lightbox.index} onClose={() => setLightbox(null)} />}
+      {lightbox && (
+        <Lightbox 
+          images={lightbox.images} 
+          index={lightbox.index} 
+          onClose={() => setLightbox(null)} 
+        />
+      )}
+      
       <ConverterModal open={converterOpen} onClose={() => setConverterOpen(false)} />
       <OcrModal open={ocrOpen} onClose={() => setOcrOpen(false)} />
     </div>
