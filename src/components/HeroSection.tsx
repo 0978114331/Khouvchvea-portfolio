@@ -44,7 +44,6 @@ export function HeroSection({ hero, visitorCount }: { hero: Hero; visitorCount: 
   const secondaryBtn = lang === 'km' ? hero.secondary_btn_km || hero.secondary_btn_en : hero.secondary_btn_en;
 
   return (
-    //  flex-col-reverse to flex-col
     <section id="home" className="visible min-h-[90vh] flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-8 max-w-[1240px] mx-auto px-4 sm:px-8 pt-28 pb-16">
       
       <div className="flex-1 animate-fade-left flex flex-col items-center lg:items-start text-center lg:text-left w-full z-10">
@@ -105,7 +104,7 @@ export function HeroSection({ hero, visitorCount }: { hero: Hero; visitorCount: 
       </div>
 
       <a href="#about" className="absolute bottom-4 lg:bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5 text-[var(--text-muted)] text-xs font-bold tracking-wider no-underline z-20">
-        {t('SCROLL DOWN', '')}
+        {t('SCROLL DOWN', 'រំកិលចុះក្រោម')}
         <ChevronDown size={16} className="animate-bounce-icon" />
       </a>
     </section>

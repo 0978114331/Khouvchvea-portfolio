@@ -1,6 +1,5 @@
 /*
-# KHOUV CHVEA Portfolio CMS Schema (fixed)
-
+# KHOUV CHVEA Portfolio CMS Schema
 Creates the full data model for a dynamic personal portfolio CMS.
 Uses text PKs for skill_categories and tools so seed IDs are stable.
 */
@@ -46,8 +45,10 @@ CREATE TABLE IF NOT EXISTS hero (
   status_badge_en text NOT NULL DEFAULT 'Open for opportunities',
   status_badge_km text NOT NULL DEFAULT 'ព្រឺទទួលយកឱកាស',
   primary_btn_en text NOT NULL DEFAULT 'Explore Work',
+  primary_btn_km text NOT NULL DEFAULT 'រុករកគម្រោង',
   primary_btn_url text NOT NULL DEFAULT '#projects',
   secondary_btn_en text NOT NULL DEFAULT 'Let''s Talk',
+  secondary_btn_km text NOT NULL DEFAULT 'ទំនាក់ទំនង',
   secondary_btn_url text NOT NULL DEFAULT '#contact',
   updated_at timestamptz DEFAULT now()
 );
@@ -66,8 +67,11 @@ CREATE TABLE IF NOT EXISTS about (
   title_en text NOT NULL DEFAULT 'The Story Behind The Code',
   title_km text NOT NULL DEFAULT 'រឿងរ៉ានៅពីក្រោយកូដ',
   heading_en text NOT NULL DEFAULT 'I am an Information Technology student and NGO-focused volunteer building foundational knowledge in modern UI templates and smooth interactive experiences.',
+  heading_km text NOT NULL DEFAULT 'ខ្ញុំគឺជានិស្សិតព័ត៌មានវិទ្យា និងជាអ្នកស្ម័គ្រចិត្ត ដែលកសាងចំណេះដឹងលើការរចនា UI និងបទពិសោធន៍ប្រើប្រាស់រលូន។',
   paragraph1_en text NOT NULL DEFAULT 'With a deep focus on details and aesthetics, I construct websites that are fast, accessible, and delight users. I believe coding is not just about typing syntax, but an art form that merges design aesthetics with logic.',
+  paragraph1_km text NOT NULL DEFAULT 'ដោយផ្តោតលើព័ត៌មានលម្អិត និងសោភ័ណភាព ខ្ញុំបង្កើតវេបសាយដែលលឿន ងាយស្រួលប្រើ និងផ្តល់ភាពរីករាយដល់អ្នកប្រើប្រាស់។ ខ្ញុំជឿថាកូដមិនមែនត្រឹមតែការវាយអត្ថបទទេ តែជាសិល្បៈ។',
   paragraph2_en text NOT NULL DEFAULT 'Whether designing standard web layouts or fully customized dashboards, I push the limits of grid systems, responsive frameworks, and scroll-triggered animations to deliver exceptional outcomes.',
+  paragraph2_km text NOT NULL DEFAULT 'មិនថាការរចនាទម្រង់ស្តង់ដារ ឬផ្ទាំងគ្រប់គ្រងផ្ទាល់ខ្លួន ខ្ញុំតែងតែជំរុញសមត្ថភាពនៃប្រព័ន្ធរចនា ដើម្បីផ្តល់នូវលទ្ធផលដ៏អស្ចារ្យ។',
   years_learning text NOT NULL DEFAULT '2+',
   projects_completed text NOT NULL DEFAULT '12+',
   feature_cards jsonb NOT NULL DEFAULT '[{"icon":"file-pdf","title_en":"File Converter Tool","desc_en":"Convert PDF to Image (JPG/PNG) or Image to PDF seamlessly."},{"icon":"language","title_en":"Image OCR Tool","desc_en":"Extract text from images automatically. Supports English and Khmer."}]'::jsonb,
@@ -82,7 +86,7 @@ CREATE POLICY "auth_update_about" ON about FOR UPDATE TO authenticated USING (tr
 DROP POLICY IF EXISTS "auth_insert_about" ON about;
 CREATE POLICY "auth_insert_about" ON about FOR INSERT TO authenticated WITH CHECK (true);
 
--- ============ SKILL CATEGORIES (text PK) ============
+-- ============ SKILL CATEGORIES ============
 CREATE TABLE IF NOT EXISTS skill_categories (
   id text PRIMARY KEY,
   title_en text NOT NULL,
