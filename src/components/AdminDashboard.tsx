@@ -28,7 +28,6 @@ export function AdminDashboard({ onExit }: Props) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
 
-  // Data state
   const [settings, setSettings] = useState<SiteSettings | null>(null);
   const [hero, setHero] = useState<Hero | null>(null);
   const [about, setAbout] = useState<About | null>(null);
@@ -114,7 +113,6 @@ export function AdminDashboard({ onExit }: Props) {
 
   return (
     <div className="min-h-screen flex" style={{ background: 'var(--bg-base)', color: 'var(--text-main)' }}>
-      {/* Sidebar */}
       <aside
         className={`fixed lg:sticky top-0 left-0 h-screen w-64 z-50 transition-transform duration-300 ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
@@ -162,9 +160,7 @@ export function AdminDashboard({ onExit }: Props) {
         <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Top bar */}
         <header
           className="sticky top-0 z-30 px-4 sm:px-6 py-3 flex items-center justify-between"
           style={{ background: 'var(--bg-surface)', backdropFilter: 'blur(20px)', borderBottom: '1px solid var(--border-color)' }}
@@ -188,7 +184,6 @@ export function AdminDashboard({ onExit }: Props) {
           </div>
         </header>
 
-        {/* Content area */}
         <main className="flex-1 p-4 sm:p-6 overflow-y-auto">
           {activeTab === 'overview' && <OverviewTab projects={projects} documents={documents} skillCategories={skillCategories} messages={messages} stats={stats} visitorCount={visitorCount} />}
           {activeTab === 'projects' && <ProjectsTab projects={projects} stats={stats} showToast={showToast} logAction={logAction} refetch={fetchAll} />}
@@ -206,7 +201,6 @@ export function AdminDashboard({ onExit }: Props) {
         </main>
       </div>
 
-      {/* Toast */}
       {toast && (
         <div
           className="fixed bottom-6 right-6 px-5 py-3 rounded-lg text-sm font-semibold z-[100] shadow-lg animate-fade-up"
@@ -223,18 +217,16 @@ export function AdminDashboard({ onExit }: Props) {
 }
 
 // ============ OVERVIEW ============
-function OverviewTab({ projects, documents, skillCategories, messages, stats, visitorCount }: {
-  projects: Project[]; documents: Document[]; skillCategories: SkillCategory[]; messages: ContactMessage[]; stats: Record<string, Stats>; visitorCount: number;
-}) {
-  const totalViews = Object.values(stats).reduce((sum, s) => sum + (s.views || 0), 0);
-  const totalLikes = Object.values(stats).reduce((sum, s) => sum + (s.likes || 0), 0);
-  const newMessages = messages.filter((m) => m.status === 'new').length;
+function OverviewTab({ projects, documents, skillCategories, messages, stats, visitorCount }: any) {
+  const totalViews = Object.values(stats as Record<string, Stats>).reduce((sum, s) => sum + (s.views || 0), 0);
+  const totalLikes = Object.values(stats as Record<string, Stats>).reduce((sum, s) => sum + (s.likes || 0), 0);
+  const newMessages = messages.filter((m: any) => m.status === 'new').length;
 
   const cards = [
     { label: 'Total Visitors', value: visitorCount, icon: Eye, color: '#3b82f6' },
     { label: 'Projects', value: projects.length, icon: FolderKanban, color: '#a855f7' },
     { label: 'Documents', value: documents.length, icon: FileText, color: '#06b6d4' },
-    { label: 'Skills', value: skillCategories.reduce((sum, c) => sum + (c.skills?.length || 0), 0), icon: Cpu, color: '#10b981' },
+    { label: 'Skills', value: skillCategories.reduce((sum: number, c: any) => sum + (c.skills?.length || 0), 0), icon: Cpu, color: '#10b981' },
     { label: 'Total Views', value: totalViews, icon: BarChart3, color: '#f59e0b' },
     { label: 'Total Likes', value: totalLikes, icon: Star, color: '#f43f5e' },
     { label: 'New Messages', value: newMessages, icon: Mail, color: '#8b5cf6' },
@@ -262,31 +254,29 @@ function OverviewTab({ projects, documents, skillCategories, messages, stats, vi
 }
 
 // ============ PROJECTS ============
-function ProjectsTab({ projects, stats, showToast, logAction, refetch }: {
-  projects: Project[]; stats: Record<string, Stats>; showToast: (m: string, t?: 'success' | 'error') => void; logAction: (a: string, d: string) => Promise<void>; refetch: () => Promise<void>;
-}) {
+function ProjectsTab({ projects, stats, showToast, logAction, refetch }: any) {
   const [editing, setEditing] = useState<Project | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ title_en: '', description_en: '', category: 'frontend', category_label_en: '', tags: '', images: '', project_url: '#', github_url: '#', featured: false, published: true });
+  const [form, setForm] = useState({ title_en: '', title_km: '', description_en: '', description_km: '', category: 'frontend', category_label_en: '', category_label_km: '', tags: '', images: '', project_url: '#', github_url: '#', featured: false, published: true });
 
   const startEdit = (p: Project) => {
     setEditing(p);
     setForm({
-      title_en: p.title_en, description_en: p.description_en, category: p.category,
-      category_label_en: p.category_label_en, tags: p.tags, images: (p.images || []).join('\n'),
-      project_url: p.project_url, github_url: p.github_url, featured: p.featured, published: p.published,
+      title_en: p.title_en, title_km: p.title_km || '', description_en: p.description_en, description_km: p.description_km || '', 
+      category: p.category, category_label_en: p.category_label_en, category_label_km: (p as any).category_label_km || '', 
+      tags: p.tags, images: (p.images || []).join('\n'), project_url: p.project_url, github_url: p.github_url, featured: p.featured, published: p.published,
     });
     setShowForm(true);
   };
 
   const startNew = () => {
     setEditing(null);
-    setForm({ title_en: '', description_en: '', category: 'frontend', category_label_en: '', tags: '', images: '', project_url: '#', github_url: '#', featured: false, published: true });
+    setForm({ title_en: '', title_km: '', description_en: '', description_km: '', category: 'frontend', category_label_en: '', category_label_km: '', tags: '', images: '', project_url: '#', github_url: '#', featured: false, published: true });
     setShowForm(true);
   };
 
   const save = async () => {
-    if (!form.title_en || !form.description_en) { showToast('Title and description required', 'error'); return; }
+    if (!form.title_en) { showToast('Title (EN) required', 'error'); return; }
     const images = form.images.split('\n').map((s) => s.trim()).filter(Boolean);
     const payload = { ...form, images, sort_order: editing?.sort_order || projects.length + 1 };
 
@@ -326,20 +316,26 @@ function ProjectsTab({ projects, stats, showToast, logAction, refetch }: {
       {showForm && (
         <div className="card p-5 mb-6">
           <h3 className="font-bold mb-4">{editing ? 'Edit Project' : 'New Project'}</h3>
-          <div className="grid sm:grid-cols-2 gap-3">
-            <input className="form-input" placeholder="Title" value={form.title_en} onChange={(e) => setForm({ ...form, title_en: e.target.value })} />
-            <input className="form-input" placeholder="Category Label (e.g. Frontend System)" value={form.category_label_en} onChange={(e) => setForm({ ...form, category_label_en: e.target.value })} />
-            <select className="form-input" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
-              <option value="frontend">frontend</option>
-              <option value="ui">ui</option>
-              <option value="fullstack">fullstack</option>
-            </select>
-            <input className="form-input" placeholder="Tags (comma separated)" value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} />
-            <input className="form-input" placeholder="Project URL" value={form.project_url} onChange={(e) => setForm({ ...form, project_url: e.target.value })} />
-            <input className="form-input" placeholder="GitHub URL" value={form.github_url} onChange={(e) => setForm({ ...form, github_url: e.target.value })} />
+          <div className="grid sm:grid-cols-2 gap-3 mb-3">
+            <Field label="Title (EN)"><input className="form-input" value={form.title_en} onChange={(e) => setForm({ ...form, title_en: e.target.value })} /></Field>
+            <Field label="Title (KM)"><input className="form-input" value={form.title_km} onChange={(e) => setForm({ ...form, title_km: e.target.value })} /></Field>
+            <Field label="Category Label (EN)"><input className="form-input" value={form.category_label_en} onChange={(e) => setForm({ ...form, category_label_en: e.target.value })} /></Field>
+            <Field label="Category Label (KM)"><input className="form-input" value={form.category_label_km} onChange={(e) => setForm({ ...form, category_label_km: e.target.value })} /></Field>
+            <Field label="Category Type">
+              <select className="form-input" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
+                <option value="frontend">Frontend</option>
+                <option value="ui">UI/UX Design</option>
+                <option value="fullstack">Fullstack</option>
+              </select>
+            </Field>
+            <Field label="Tags (comma separated)"><input className="form-input" value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} /></Field>
+            <Field label="Project URL"><input className="form-input" value={form.project_url} onChange={(e) => setForm({ ...form, project_url: e.target.value })} /></Field>
+            <Field label="GitHub URL"><input className="form-input" value={form.github_url} onChange={(e) => setForm({ ...form, github_url: e.target.value })} /></Field>
           </div>
-          <textarea className="form-input mt-3" rows={3} placeholder="Description" value={form.description_en} onChange={(e) => setForm({ ...form, description_en: e.target.value })} />
-          <textarea className="form-input mt-3" rows={4} placeholder="Image URLs (one per line)" value={form.images} onChange={(e) => setForm({ ...form, images: e.target.value })} />
+          <Field label="Description (EN)"><textarea className="form-input mb-3" rows={2} value={form.description_en} onChange={(e) => setForm({ ...form, description_en: e.target.value })} /></Field>
+          <Field label="Description (KM)"><textarea className="form-input mb-3" rows={2} value={form.description_km} onChange={(e) => setForm({ ...form, description_km: e.target.value })} /></Field>
+          <Field label="Image URLs (one per line)"><textarea className="form-input mb-3" rows={3} value={form.images} onChange={(e) => setForm({ ...form, images: e.target.value })} /></Field>
+          
           <div className="flex gap-4 mt-3">
             <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.featured} onChange={(e) => setForm({ ...form, featured: e.target.checked })} /> Featured</label>
             <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.published} onChange={(e) => setForm({ ...form, published: e.target.checked })} /> Published</label>
@@ -358,35 +354,28 @@ function ProjectsTab({ projects, stats, showToast, logAction, refetch }: {
               <th className="text-left p-3 font-semibold">Project</th>
               <th className="text-left p-3 font-semibold hidden sm:table-cell">Category</th>
               <th className="text-left p-3 font-semibold hidden sm:table-cell">Status</th>
-              <th className="text-left p-3 font-semibold hidden md:table-cell">Views</th>
-              <th className="text-left p-3 font-semibold hidden md:table-cell">Likes</th>
               <th className="text-right p-3 font-semibold">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {projects.map((p) => {
-              const st = stats[`project_${p.id}`];
-              return (
-                <tr key={p.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                  <td className="p-3">
-                    <div className="font-semibold">{p.title_en}</div>
-                    {p.featured && <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'rgba(245,158,11,0.15)', color: '#f59e0b' }}>Featured</span>}
-                  </td>
-                  <td className="p-3 hidden sm:table-cell">{p.category_label_en}</td>
-                  <td className="p-3 hidden sm:table-cell">
-                    <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: p.published ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)', color: p.published ? '#10b981' : '#ef4444' }}>
-                      {p.published ? 'Published' : 'Hidden'}
-                    </span>
-                  </td>
-                  <td className="p-3 hidden md:table-cell">{(st?.views || 0).toLocaleString()}</td>
-                  <td className="p-3 hidden md:table-cell">{(st?.likes || 0).toLocaleString()}</td>
-                  <td className="p-3 text-right">
-                    <button onClick={() => startEdit(p)} className="p-1.5 rounded hover:bg-blue-500/10" style={{ color: 'var(--primary)' }}><Edit size={15} /></button>
-                    <button onClick={() => del(p)} className="p-1.5 rounded hover:bg-red-500/10" style={{ color: '#ef4444' }}><Trash2 size={15} /></button>
-                  </td>
-                </tr>
-              );
-            })}
+            {projects.map((p: any) => (
+              <tr key={p.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                <td className="p-3">
+                  <div className="font-semibold">{p.title_en}</div>
+                  {p.featured && <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'rgba(245,158,11,0.15)', color: '#f59e0b' }}>Featured</span>}
+                </td>
+                <td className="p-3 hidden sm:table-cell">{p.category_label_en}</td>
+                <td className="p-3 hidden sm:table-cell">
+                  <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: p.published ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)', color: p.published ? '#10b981' : '#ef4444' }}>
+                    {p.published ? 'Published' : 'Hidden'}
+                  </span>
+                </td>
+                <td className="p-3 text-right">
+                  <button onClick={() => startEdit(p)} className="p-1.5 rounded hover:bg-blue-500/10" style={{ color: 'var(--primary)' }}><Edit size={15} /></button>
+                  <button onClick={() => del(p)} className="p-1.5 rounded hover:bg-red-500/10" style={{ color: '#ef4444' }}><Trash2 size={15} /></button>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
@@ -395,22 +384,20 @@ function ProjectsTab({ projects, stats, showToast, logAction, refetch }: {
 }
 
 // ============ DOCUMENTS ============
-function DocumentsTab({ documents, stats, showToast, logAction, refetch }: {
-  documents: Document[]; stats: Record<string, Stats>; showToast: (m: string, t?: 'success' | 'error') => void; logAction: (a: string, d: string) => Promise<void>; refetch: () => Promise<void>;
-}) {
+function DocumentsTab({ documents, stats, showToast, logAction, refetch }: any) {
   const [editing, setEditing] = useState<Document | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ title_en: '', description_en: '', category_en: '', images: '', date_label: '', published: true });
+  const [form, setForm] = useState({ title_en: '', title_km: '', description_en: '', description_km: '', category_en: '', images: '', date_label: '', published: true });
 
   const startEdit = (d: Document) => {
     setEditing(d);
-    setForm({ title_en: d.title_en, description_en: d.description_en, category_en: d.category_en, images: (d.images || []).join('\n'), date_label: d.date_label, published: d.published });
+    setForm({ title_en: d.title_en, title_km: d.title_km || '', description_en: d.description_en, description_km: d.description_km || '', category_en: d.category_en, images: (d.images || []).join('\n'), date_label: d.date_label, published: d.published });
     setShowForm(true);
   };
 
   const startNew = () => {
     setEditing(null);
-    setForm({ title_en: '', description_en: '', category_en: '', images: '', date_label: '', published: true });
+    setForm({ title_en: '', title_km: '', description_en: '', description_km: '', category_en: '', images: '', date_label: '', published: true });
     setShowForm(true);
   };
 
@@ -453,13 +440,15 @@ function DocumentsTab({ documents, stats, showToast, logAction, refetch }: {
       {showForm && (
         <div className="card p-5 mb-6">
           <h3 className="font-bold mb-4">{editing ? 'Edit Document' : 'New Document'}</h3>
-          <div className="grid sm:grid-cols-2 gap-3">
-            <input className="form-input" placeholder="Title" value={form.title_en} onChange={(e) => setForm({ ...form, title_en: e.target.value })} />
-            <input className="form-input" placeholder="Category" value={form.category_en} onChange={(e) => setForm({ ...form, category_en: e.target.value })} />
-            <input className="form-input" placeholder="Date Label (e.g. 2025-2026)" value={form.date_label} onChange={(e) => setForm({ ...form, date_label: e.target.value })} />
+          <div className="grid sm:grid-cols-2 gap-3 mb-3">
+            <Field label="Title (EN)"><input className="form-input" value={form.title_en} onChange={(e) => setForm({ ...form, title_en: e.target.value })} /></Field>
+            <Field label="Title (KM)"><input className="form-input" value={form.title_km} onChange={(e) => setForm({ ...form, title_km: e.target.value })} /></Field>
+            <Field label="Category"><input className="form-input" value={form.category_en} onChange={(e) => setForm({ ...form, category_en: e.target.value })} /></Field>
+            <Field label="Date Label (e.g. 2025-2026)"><input className="form-input" value={form.date_label} onChange={(e) => setForm({ ...form, date_label: e.target.value })} /></Field>
           </div>
-          <textarea className="form-input mt-3" rows={3} placeholder="Description" value={form.description_en} onChange={(e) => setForm({ ...form, description_en: e.target.value })} />
-          <textarea className="form-input mt-3" rows={4} placeholder="Image URLs (one per line)" value={form.images} onChange={(e) => setForm({ ...form, images: e.target.value })} />
+          <Field label="Description (EN)"><textarea className="form-input mb-3" rows={2} value={form.description_en} onChange={(e) => setForm({ ...form, description_en: e.target.value })} /></Field>
+          <Field label="Description (KM)"><textarea className="form-input mb-3" rows={2} value={form.description_km} onChange={(e) => setForm({ ...form, description_km: e.target.value })} /></Field>
+          <Field label="Image URLs (one per line)"><textarea className="form-input mb-3" rows={3} value={form.images} onChange={(e) => setForm({ ...form, images: e.target.value })} /></Field>
           <label className="flex items-center gap-2 text-sm mt-3"><input type="checkbox" checked={form.published} onChange={(e) => setForm({ ...form, published: e.target.checked })} /> Published</label>
           <div className="flex gap-3 mt-4">
             <button onClick={save} className="btn-gradient px-5 py-2 rounded-lg text-sm font-semibold flex items-center gap-2"><Save size={16} /> Save</button>
@@ -474,31 +463,24 @@ function DocumentsTab({ documents, stats, showToast, logAction, refetch }: {
             <tr>
               <th className="text-left p-3 font-semibold">Document</th>
               <th className="text-left p-3 font-semibold hidden sm:table-cell">Status</th>
-              <th className="text-left p-3 font-semibold hidden md:table-cell">Views</th>
-              <th className="text-left p-3 font-semibold hidden md:table-cell">Likes</th>
               <th className="text-right p-3 font-semibold">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {documents.map((d) => {
-              const st = stats[`doc_${d.id}`];
-              return (
-                <tr key={d.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                  <td className="p-3"><div className="font-semibold">{d.title_en}</div>{d.date_label && <div className="text-xs" style={{ color: 'var(--text-muted)' }}>{d.date_label}</div>}</td>
-                  <td className="p-3 hidden sm:table-cell">
-                    <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: d.published ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)', color: d.published ? '#10b981' : '#ef4444' }}>
-                      {d.published ? 'Published' : 'Hidden'}
-                    </span>
-                  </td>
-                  <td className="p-3 hidden md:table-cell">{(st?.views || 0).toLocaleString()}</td>
-                  <td className="p-3 hidden md:table-cell">{(st?.likes || 0).toLocaleString()}</td>
-                  <td className="p-3 text-right">
-                    <button onClick={() => startEdit(d)} className="p-1.5 rounded hover:bg-blue-500/10" style={{ color: 'var(--primary)' }}><Edit size={15} /></button>
-                    <button onClick={() => del(d)} className="p-1.5 rounded hover:bg-red-500/10" style={{ color: '#ef4444' }}><Trash2 size={15} /></button>
-                  </td>
-                </tr>
-              );
-            })}
+            {documents.map((d: any) => (
+              <tr key={d.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                <td className="p-3"><div className="font-semibold">{d.title_en}</div>{d.date_label && <div className="text-xs" style={{ color: 'var(--text-muted)' }}>{d.date_label}</div>}</td>
+                <td className="p-3 hidden sm:table-cell">
+                  <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: d.published ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)', color: d.published ? '#10b981' : '#ef4444' }}>
+                    {d.published ? 'Published' : 'Hidden'}
+                  </span>
+                </td>
+                <td className="p-3 text-right">
+                  <button onClick={() => startEdit(d)} className="p-1.5 rounded hover:bg-blue-500/10" style={{ color: 'var(--primary)' }}><Edit size={15} /></button>
+                  <button onClick={() => del(d)} className="p-1.5 rounded hover:bg-red-500/10" style={{ color: '#ef4444' }}><Trash2 size={15} /></button>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
@@ -507,21 +489,30 @@ function DocumentsTab({ documents, stats, showToast, logAction, refetch }: {
 }
 
 // ============ SKILLS ============
-function SkillsTab({ categories, showToast, logAction, refetch }: {
-  categories: SkillCategory[]; showToast: (m: string, t?: 'success' | 'error') => void; logAction: (a: string, d: string) => Promise<void>; refetch: () => Promise<void>;
-}) {
+function SkillsTab({ categories, showToast, logAction, refetch }: any) {
   const [showCatForm, setShowCatForm] = useState(false);
-  const [catForm, setCatForm] = useState({ title_en: '', icon: 'laptop-code' });
-  const [skillForm, setSkillForm] = useState<{ categoryId: string; name_en: string; percentage: number } | null>(null);
+  const [catForm, setCatForm] = useState({ title_en: '', title_km: '', icon: 'server' });
+  const [skillForm, setSkillForm] = useState<{ categoryId: string; name_en: string; name_km: string; percentage: number } | null>(null);
 
   const addCategory = async () => {
     if (!catForm.title_en) { showToast('Title required', 'error'); return; }
-    const { error } = await supabase.from('skill_categories').insert({ ...catForm, sort_order: categories.length + 1 });
-    if (error) { showToast('Failed', 'error'); return; }
+    
+    // បង្កើត ID ថ្មីដោយស្វ័យប្រវត្តិ ដើម្បីកុំឲ្យ Error "Failed"
+    const newId = `cat-${Date.now()}`;
+    
+    const { error } = await supabase.from('skill_categories').insert({ 
+      id: newId, 
+      title_en: catForm.title_en,
+      title_km: catForm.title_km,
+      icon: catForm.icon,
+      sort_order: categories.length + 1 
+    });
+    
+    if (error) { showToast('Failed to add category', 'error'); return; }
     await logAction('CREATE', `Created skill category: ${catForm.title_en}`);
     showToast('Category added!');
     setShowCatForm(false);
-    setCatForm({ title_en: '', icon: 'laptop-code' });
+    setCatForm({ title_en: '', title_km: '', icon: 'server' });
     await refetch();
   };
 
@@ -539,8 +530,9 @@ function SkillsTab({ categories, showToast, logAction, refetch }: {
     const { error } = await supabase.from('skills').insert({
       category_id: skillForm.categoryId,
       name_en: skillForm.name_en,
+      name_km: skillForm.name_km,
       percentage: skillForm.percentage,
-      sort_order: (categories.find((c) => c.id === skillForm.categoryId)?.skills?.length || 0) + 1,
+      sort_order: (categories.find((c: any) => c.id === skillForm.categoryId)?.skills?.length || 0) + 1,
     });
     if (error) { showToast('Failed', 'error'); return; }
     await logAction('CREATE', `Added skill: ${skillForm.name_en}`);
@@ -567,37 +559,53 @@ function SkillsTab({ categories, showToast, logAction, refetch }: {
 
       {showCatForm && (
         <div className="card p-5 mb-6">
-          <div className="grid sm:grid-cols-2 gap-3">
-            <input className="form-input" placeholder="Category Title" value={catForm.title_en} onChange={(e) => setCatForm({ ...catForm, title_en: e.target.value })} />
-            <input className="form-input" placeholder="Icon (laptop-code, screwdriver-wrench)" value={catForm.icon} onChange={(e) => setCatForm({ ...catForm, icon: e.target.value })} />
+          <div className="grid sm:grid-cols-3 gap-3">
+            <Field label="Category Title (EN)"><input className="form-input" value={catForm.title_en} onChange={(e) => setCatForm({ ...catForm, title_en: e.target.value })} /></Field>
+            <Field label="Category Title (KM)"><input className="form-input" value={catForm.title_km} onChange={(e) => setCatForm({ ...catForm, title_km: e.target.value })} /></Field>
+            
+            {/* ប្តូរទៅជា Dropdown */}
+            <Field label="Select Icon">
+              <select className="form-input" value={catForm.icon} onChange={(e) => setCatForm({ ...catForm, icon: e.target.value })}>
+                <option value="laptop-code">💻 Web & Code (laptop-code)</option>
+                <option value="server">🗄️ Backend & DB (server)</option>
+                <option value="screwdriver-wrench">🛠️ Design & Tools (screwdriver-wrench)</option>
+                <option value="smartphone">📱 Mobile App (smartphone)</option>
+                <option value="terminal">🖥️ Terminal (terminal)</option>
+                <option value="globe">🌐 Network (globe)</option>
+              </select>
+            </Field>
           </div>
-          <button onClick={addCategory} className="btn-gradient px-5 py-2 rounded-lg text-sm font-semibold mt-3">Add Category</button>
+          <div className="flex gap-3 mt-4">
+            <button onClick={addCategory} className="btn-gradient px-5 py-2 rounded-lg text-sm font-semibold">Save Category</button>
+            <button onClick={() => setShowCatForm(false)} className="px-5 py-2 rounded-lg text-sm font-semibold border" style={{ borderColor: 'var(--border-color)' }}>Cancel</button>
+          </div>
         </div>
       )}
 
-      <div className="grid sm:grid-cols-2 gap-4">
-        {categories.map((cat) => (
+      <div className="grid lg:grid-cols-2 gap-4">
+        {categories.map((cat: any) => (
           <div key={cat.id} className="card p-5">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="font-bold">{cat.title_en}</h3>
+              <h3 className="font-bold">{cat.title_en} {cat.title_km && <span className="text-xs text-gray-500 font-normal">({cat.title_km})</span>}</h3>
               <button onClick={() => delCategory(cat.id, cat.title_en)} className="p-1.5 rounded hover:bg-red-500/10" style={{ color: '#ef4444' }}><Trash2 size={15} /></button>
             </div>
             <div className="flex flex-col gap-2 mb-3">
-              {(cat.skills || []).map((sk) => (
+              {(cat.skills || []).map((sk: any) => (
                 <div key={sk.id} className="flex items-center justify-between text-sm py-1.5 px-3 rounded" style={{ background: 'var(--bg-surface)' }}>
-                  <span>{sk.name_en} — {sk.percentage}%</span>
+                  <span>{sk.name_en} <span className="text-gray-500 text-xs">{sk.name_km}</span> — {sk.percentage}%</span>
                   <button onClick={() => delSkill(sk.id, sk.name_en)} className="p-1 rounded" style={{ color: '#ef4444' }}><X size={14} /></button>
                 </div>
               ))}
             </div>
             {skillForm?.categoryId === cat.id ? (
-              <div className="flex gap-2">
-                <input className="form-input flex-1" placeholder="Skill name" value={skillForm.name_en} onChange={(e) => setSkillForm({ ...skillForm, name_en: e.target.value })} />
-                <input className="form-input w-20" type="number" min={0} max={100} value={skillForm.percentage} onChange={(e) => setSkillForm({ ...skillForm, percentage: parseInt(e.target.value) || 0 })} />
+              <div className="flex gap-2 mt-2">
+                <input className="form-input flex-1" placeholder="Skill (EN)" value={skillForm.name_en} onChange={(e) => setSkillForm({ ...skillForm, name_en: e.target.value })} />
+                <input className="form-input flex-1" placeholder="Skill (KM)" value={skillForm.name_km} onChange={(e) => setSkillForm({ ...skillForm, name_km: e.target.value })} />
+                <input className="form-input w-16" type="number" min={0} max={100} value={skillForm.percentage} onChange={(e) => setSkillForm({ ...skillForm, percentage: parseInt(e.target.value) || 0 })} />
                 <button onClick={addSkill} className="btn-gradient px-3 py-2 rounded-lg text-sm font-semibold">Add</button>
               </div>
             ) : (
-              <button onClick={() => setSkillForm({ categoryId: cat.id, name_en: '', percentage: 80 })} className="text-sm font-semibold flex items-center gap-1" style={{ color: 'var(--primary)' }}>
+              <button onClick={() => setSkillForm({ categoryId: cat.id, name_en: '', name_km: '', percentage: 80 })} className="text-sm font-semibold flex items-center gap-1" style={{ color: 'var(--primary)' }}>
                 <Plus size={14} /> Add Skill
               </button>
             )}
@@ -609,12 +617,12 @@ function SkillsTab({ categories, showToast, logAction, refetch }: {
 }
 
 // ============ HERO ============
-function HeroTab({ hero, showToast, logAction }: { hero: Hero; showToast: (m: string, t?: 'success' | 'error') => void; logAction: (a: string, d: string) => Promise<void> }) {
+function HeroTab({ hero, showToast, logAction }: any) {
   const [form, setForm] = useState(hero);
   const [phrasesText, setPhrasesText] = useState((hero.typing_phrases || []).join('\n'));
 
   const save = async () => {
-    const phrases = phrasesText.split('\n').map((s) => s.trim()).filter(Boolean);
+    const phrases = phrasesText.split('\n').map((s: string) => s.trim()).filter(Boolean);
     const { error } = await supabase.from('hero').update({ ...form, typing_phrases: phrases, updated_at: new Date().toISOString() }).eq('id', 1);
     if (error) { showToast('Save failed', 'error'); return; }
     await logAction('UPDATE', 'Updated hero section');
@@ -625,25 +633,34 @@ function HeroTab({ hero, showToast, logAction }: { hero: Hero; showToast: (m: st
     <div className="card p-5 max-w-2xl">
       <h2 className="text-lg font-bold mb-4">Edit Hero Section</h2>
       <div className="flex flex-col gap-3">
-        <Field label="Name (EN)"><input className="form-input" value={form.name_en} onChange={(e) => setForm({ ...form, name_en: e.target.value })} /></Field>
-        <Field label="Name (KM)"><input className="form-input" value={form.name_km} onChange={(e) => setForm({ ...form, name_km: e.target.value })} /></Field>
+        <div className="grid sm:grid-cols-2 gap-3">
+          <Field label="Name (EN)"><input className="form-input" value={form.name_en} onChange={(e) => setForm({ ...form, name_en: e.target.value })} /></Field>
+          <Field label="Name (KM)"><input className="form-input" value={form.name_km} onChange={(e) => setForm({ ...form, name_km: e.target.value })} /></Field>
+          <Field label="Status Badge (EN)"><input className="form-input" value={form.status_badge_en} onChange={(e) => setForm({ ...form, status_badge_en: e.target.value })} /></Field>
+          <Field label="Status Badge (KM)"><input className="form-input" value={form.status_badge_km} onChange={(e) => setForm({ ...form, status_badge_km: e.target.value })} /></Field>
+        </div>
         <Field label="Description (EN)"><textarea className="form-input" rows={3} value={form.description_en} onChange={(e) => setForm({ ...form, description_en: e.target.value })} /></Field>
         <Field label="Description (KM)"><textarea className="form-input" rows={3} value={form.description_km} onChange={(e) => setForm({ ...form, description_km: e.target.value })} /></Field>
         <Field label="Typing Phrases (one per line)"><textarea className="form-input" rows={4} value={phrasesText} onChange={(e) => setPhrasesText(e.target.value)} /></Field>
         <Field label="Profile Image URL"><input className="form-input" value={form.profile_image_url} onChange={(e) => setForm({ ...form, profile_image_url: e.target.value })} /></Field>
-        <Field label="Status Badge (EN)"><input className="form-input" value={form.status_badge_en} onChange={(e) => setForm({ ...form, status_badge_en: e.target.value })} /></Field>
-        <Field label="Primary Button Text"><input className="form-input" value={form.primary_btn_en} onChange={(e) => setForm({ ...form, primary_btn_en: e.target.value })} /></Field>
-        <Field label="Primary Button URL"><input className="form-input" value={form.primary_btn_url} onChange={(e) => setForm({ ...form, primary_btn_url: e.target.value })} /></Field>
-        <Field label="Secondary Button Text"><input className="form-input" value={form.secondary_btn_en} onChange={(e) => setForm({ ...form, secondary_btn_en: e.target.value })} /></Field>
-        <Field label="Secondary Button URL"><input className="form-input" value={form.secondary_btn_url} onChange={(e) => setForm({ ...form, secondary_btn_url: e.target.value })} /></Field>
+        
+        <div className="grid sm:grid-cols-2 gap-3 mt-2">
+          <Field label="Primary Button (EN)"><input className="form-input" value={form.primary_btn_en} onChange={(e) => setForm({ ...form, primary_btn_en: e.target.value })} /></Field>
+          <Field label="Primary Button (KM)"><input className="form-input" value={form.primary_btn_km} onChange={(e) => setForm({ ...form, primary_btn_km: e.target.value })} /></Field>
+          <Field label="Primary Button URL"><input className="form-input" value={form.primary_btn_url} onChange={(e) => setForm({ ...form, primary_btn_url: e.target.value })} /></Field>
+          <div className="hidden sm:block"></div>
+          <Field label="Secondary Button (EN)"><input className="form-input" value={form.secondary_btn_en} onChange={(e) => setForm({ ...form, secondary_btn_en: e.target.value })} /></Field>
+          <Field label="Secondary Button (KM)"><input className="form-input" value={form.secondary_btn_km} onChange={(e) => setForm({ ...form, secondary_btn_km: e.target.value })} /></Field>
+          <Field label="Secondary Button URL"><input className="form-input" value={form.secondary_btn_url} onChange={(e) => setForm({ ...form, secondary_btn_url: e.target.value })} /></Field>
+        </div>
       </div>
-      <button onClick={save} className="btn-gradient px-5 py-2 rounded-lg text-sm font-semibold mt-4 flex items-center gap-2"><Save size={16} /> Save Hero</button>
+      <button onClick={save} className="btn-gradient px-5 py-2 rounded-lg text-sm font-semibold mt-5 flex items-center gap-2"><Save size={16} /> Save Hero</button>
     </div>
   );
 }
 
 // ============ ABOUT ============
-function AboutTab({ about, showToast, logAction }: { about: About; showToast: (m: string, t?: 'success' | 'error') => void; logAction: (a: string, d: string) => Promise<void> }) {
+function AboutTab({ about, showToast, logAction }: any) {
   const [form, setForm] = useState(about);
   const [featuresText, setFeaturesText] = useState(JSON.stringify(about.feature_cards || [], null, 2));
 
@@ -660,10 +677,17 @@ function AboutTab({ about, showToast, logAction }: { about: About; showToast: (m
     <div className="card p-5 max-w-2xl">
       <h2 className="text-lg font-bold mb-4">Edit About Section</h2>
       <div className="flex flex-col gap-3">
-        <Field label="Title (EN)"><input className="form-input" value={form.title_en} onChange={(e) => setForm({ ...form, title_en: e.target.value })} /></Field>
-        <Field label="Heading"><textarea className="form-input" rows={3} value={form.heading_en} onChange={(e) => setForm({ ...form, heading_en: e.target.value })} /></Field>
-        <Field label="Paragraph 1"><textarea className="form-input" rows={3} value={form.paragraph1_en} onChange={(e) => setForm({ ...form, paragraph1_en: e.target.value })} /></Field>
-        <Field label="Paragraph 2"><textarea className="form-input" rows={3} value={form.paragraph2_en} onChange={(e) => setForm({ ...form, paragraph2_en: e.target.value })} /></Field>
+        <div className="grid sm:grid-cols-2 gap-3">
+          <Field label="Title (EN)"><input className="form-input" value={form.title_en} onChange={(e) => setForm({ ...form, title_en: e.target.value })} /></Field>
+          <Field label="Title (KM)"><input className="form-input" value={form.title_km} onChange={(e) => setForm({ ...form, title_km: e.target.value })} /></Field>
+        </div>
+        <Field label="Heading (EN)"><textarea className="form-input" rows={2} value={form.heading_en} onChange={(e) => setForm({ ...form, heading_en: e.target.value })} /></Field>
+        <Field label="Heading (KM)"><textarea className="form-input" rows={2} value={form.heading_km} onChange={(e) => setForm({ ...form, heading_km: e.target.value })} /></Field>
+        <Field label="Paragraph 1 (EN)"><textarea className="form-input" rows={2} value={form.paragraph1_en} onChange={(e) => setForm({ ...form, paragraph1_en: e.target.value })} /></Field>
+        <Field label="Paragraph 1 (KM)"><textarea className="form-input" rows={2} value={form.paragraph1_km} onChange={(e) => setForm({ ...form, paragraph1_km: e.target.value })} /></Field>
+        <Field label="Paragraph 2 (EN)"><textarea className="form-input" rows={2} value={form.paragraph2_en} onChange={(e) => setForm({ ...form, paragraph2_en: e.target.value })} /></Field>
+        <Field label="Paragraph 2 (KM)"><textarea className="form-input" rows={2} value={form.paragraph2_km} onChange={(e) => setForm({ ...form, paragraph2_km: e.target.value })} /></Field>
+        
         <div className="grid grid-cols-2 gap-3">
           <Field label="Years Learning"><input className="form-input" value={form.years_learning} onChange={(e) => setForm({ ...form, years_learning: e.target.value })} /></Field>
           <Field label="Projects Completed"><input className="form-input" value={form.projects_completed} onChange={(e) => setForm({ ...form, projects_completed: e.target.value })} /></Field>
@@ -676,7 +700,7 @@ function AboutTab({ about, showToast, logAction }: { about: About; showToast: (m
 }
 
 // ============ SETTINGS ============
-function SettingsTab({ settings, showToast, logAction }: { settings: SiteSettings; showToast: (m: string, t?: 'success' | 'error') => void; logAction: (a: string, d: string) => Promise<void> }) {
+function SettingsTab({ settings, showToast, logAction }: any) {
   const [form, setForm] = useState(settings);
 
   const save = async () => {
@@ -701,6 +725,7 @@ function SettingsTab({ settings, showToast, logAction }: { settings: SiteSetting
         <Field label="Primary Color"><input className="form-input" value={form.primary_color} onChange={(e) => setForm({ ...form, primary_color: e.target.value })} /></Field>
         <Field label="Secondary Color"><input className="form-input" value={form.secondary_color} onChange={(e) => setForm({ ...form, secondary_color: e.target.value })} /></Field>
         <Field label="Maintenance Message (EN)"><textarea className="form-input" rows={2} value={form.maintenance_message_en} onChange={(e) => setForm({ ...form, maintenance_message_en: e.target.value })} /></Field>
+        <Field label="Maintenance Message (KM)"><textarea className="form-input" rows={2} value={form.maintenance_message_km} onChange={(e) => setForm({ ...form, maintenance_message_km: e.target.value })} /></Field>
         <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.maintenance_mode} onChange={(e) => setForm({ ...form, maintenance_mode: e.target.checked })} /> Maintenance Mode</label>
       </div>
       <button onClick={save} className="btn-gradient px-5 py-2 rounded-lg text-sm font-semibold mt-4 flex items-center gap-2"><Save size={16} /> Save Settings</button>
@@ -709,13 +734,11 @@ function SettingsTab({ settings, showToast, logAction }: { settings: SiteSetting
 }
 
 // ============ MESSAGES ============
-function MessagesTab({ messages, showToast, logAction, refetch }: {
-  messages: ContactMessage[]; showToast: (m: string, t?: 'success' | 'error') => void; logAction: (a: string, d: string) => Promise<void>; refetch: () => Promise<void>;
-}) {
+function MessagesTab({ messages, showToast, logAction, refetch }: any) {
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
 
-  const filtered = messages.filter((m) => {
+  const filtered = messages.filter((m: any) => {
     if (filter !== 'all' && m.status !== filter) return false;
     if (search && !m.name.toLowerCase().includes(search.toLowerCase()) && !m.email.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
@@ -753,7 +776,7 @@ function MessagesTab({ messages, showToast, logAction, refetch }: {
 
       <div className="flex flex-col gap-3">
         {filtered.length === 0 && <p className="text-center py-8" style={{ color: 'var(--text-muted)' }}>No messages found.</p>}
-        {filtered.map((m) => (
+        {filtered.map((m: any) => (
           <div key={m.id} className="card p-4">
             <div className="flex justify-between items-start mb-2">
               <div>
@@ -781,26 +804,24 @@ function MessagesTab({ messages, showToast, logAction, refetch }: {
 }
 
 // ============ ANALYTICS ============
-function AnalyticsTab({ stats, visitorCount, projects, documents }: {
-  stats: Record<string, Stats>; visitorCount: number; projects: Project[]; documents: Document[];
-}) {
-  const totalViews = Object.values(stats).reduce((sum, s) => sum + (s.views || 0), 0);
-  const totalLikes = Object.values(stats).reduce((sum, s) => sum + (s.likes || 0), 0);
+function AnalyticsTab({ stats, visitorCount, projects, documents }: any) {
+  const totalViews = Object.values(stats as Record<string, Stats>).reduce((sum, s) => sum + (s.views || 0), 0);
+  const totalLikes = Object.values(stats as Record<string, Stats>).reduce((sum, s) => sum + (s.likes || 0), 0);
 
-  const projectStats = projects.map((p) => ({
+  const projectStats = projects.map((p: any) => ({
     title: p.title_en,
     views: stats[`project_${p.id}`]?.views || 0,
     likes: stats[`project_${p.id}`]?.likes || 0,
-  })).sort((a, b) => b.views - a.views);
+  })).sort((a: any, b: any) => b.views - a.views);
 
-  const docStats = documents.map((d) => ({
+  const docStats = documents.map((d: any) => ({
     title: d.title_en,
     views: stats[`doc_${d.id}`]?.views || 0,
     likes: stats[`doc_${d.id}`]?.likes || 0,
-  })).sort((a, b) => b.views - a.views);
+  })).sort((a: any, b: any) => b.views - a.views);
 
-  const maxProjViews = Math.max(...projectStats.map((p) => p.views), 1);
-  const maxDocViews = Math.max(...docStats.map((d) => d.views), 1);
+  const maxProjViews = Math.max(...projectStats.map((p: any) => p.views), 1);
+  const maxDocViews = Math.max(...docStats.map((d: any) => d.views), 1);
 
   return (
     <div>
@@ -815,7 +836,7 @@ function AnalyticsTab({ stats, visitorCount, projects, documents }: {
         <div className="card p-5">
           <h3 className="font-bold mb-4">Project Views</h3>
           <div className="flex flex-col gap-2">
-            {projectStats.map((p, i) => (
+            {projectStats.map((p: any, i: number) => (
               <div key={i} className="flex items-center gap-3">
                 <span className="text-xs w-32 truncate">{p.title}</span>
                 <div className="flex-1 h-5 rounded overflow-hidden" style={{ background: 'var(--bg-surface)' }}>
@@ -830,7 +851,7 @@ function AnalyticsTab({ stats, visitorCount, projects, documents }: {
         <div className="card p-5">
           <h3 className="font-bold mb-4">Document Views</h3>
           <div className="flex flex-col gap-2">
-            {docStats.map((d, i) => (
+            {docStats.map((d: any, i: number) => (
               <div key={i} className="flex items-center gap-3">
                 <span className="text-xs w-32 truncate">{d.title}</span>
                 <div className="flex-1 h-5 rounded overflow-hidden" style={{ background: 'var(--bg-surface)' }}>
@@ -847,9 +868,7 @@ function AnalyticsTab({ stats, visitorCount, projects, documents }: {
 }
 
 // ============ TOOLS ============
-function ToolsTab({ tools, showToast, logAction, refetch }: {
-  tools: Tool[]; showToast: (m: string, t?: 'success' | 'error') => void; logAction: (a: string, d: string) => Promise<void>; refetch: () => Promise<void>;
-}) {
+function ToolsTab({ tools, showToast, logAction, refetch }: any) {
   const toggle = async (tool: Tool) => {
     const { error } = await supabase.from('tools').update({ enabled: !tool.enabled, updated_at: new Date().toISOString() }).eq('id', tool.id);
     if (error) { showToast('Failed', 'error'); return; }
@@ -858,27 +877,29 @@ function ToolsTab({ tools, showToast, logAction, refetch }: {
     await refetch();
   };
 
-  const save = async (tool: Tool, name: string, desc: string) => {
-    const { error } = await supabase.from('tools').update({ name_en: name, description_en: desc, updated_at: new Date().toISOString() }).eq('id', tool.id);
+  const save = async (tool: Tool, nameEn: string, nameKm: string, descEn: string, descKm: string) => {
+    const { error } = await supabase.from('tools').update({ name_en: nameEn, name_km: nameKm, description_en: descEn, description_km: descKm, updated_at: new Date().toISOString() }).eq('id', tool.id);
     if (error) { showToast('Failed', 'error'); return; }
-    await logAction('UPDATE', `Updated tool: ${name}`);
+    await logAction('UPDATE', `Updated tool: ${nameEn}`);
     showToast('Tool updated!');
     await refetch();
   };
 
   return (
     <div className="grid sm:grid-cols-2 gap-4">
-      {tools.map((tool) => (
-        <ToolCard key={tool.id} tool={tool} onToggle={() => toggle(tool)} onSave={(name, desc) => save(tool, name, desc)} />
+      {tools.map((tool: any) => (
+        <ToolCard key={tool.id} tool={tool} onToggle={() => toggle(tool)} onSave={(nameEn, nameKm, descEn, descKm) => save(tool, nameEn, nameKm, descEn, descKm)} />
       ))}
     </div>
   );
 }
 
-function ToolCard({ tool, onToggle, onSave }: { tool: Tool; onToggle: () => void; onSave: (name: string, desc: string) => void }) {
+function ToolCard({ tool, onToggle, onSave }: any) {
   const [editing, setEditing] = useState(false);
-  const [name, setName] = useState(tool.name_en);
-  const [desc, setDesc] = useState(tool.description_en);
+  const [nameEn, setNameEn] = useState(tool.name_en);
+  const [nameKm, setNameKm] = useState(tool.name_km || '');
+  const [descEn, setDescEn] = useState(tool.description_en);
+  const [descKm, setDescKm] = useState(tool.description_km || '');
 
   return (
     <div className="card p-5">
@@ -890,10 +911,12 @@ function ToolCard({ tool, onToggle, onSave }: { tool: Tool; onToggle: () => void
       </div>
       {editing ? (
         <>
-          <input className="form-input mb-2" value={name} onChange={(e) => setName(e.target.value)} />
-          <textarea className="form-input mb-2" rows={2} value={desc} onChange={(e) => setDesc(e.target.value)} />
-          <div className="flex gap-2">
-            <button onClick={() => { onSave(name, desc); setEditing(false); }} className="btn-gradient px-3 py-1.5 rounded text-xs font-semibold">Save</button>
+          <Field label="Name (EN)"><input className="form-input mb-2" value={nameEn} onChange={(e) => setNameEn(e.target.value)} /></Field>
+          <Field label="Name (KM)"><input className="form-input mb-2" value={nameKm} onChange={(e) => setNameKm(e.target.value)} /></Field>
+          <Field label="Description (EN)"><textarea className="form-input mb-2" rows={2} value={descEn} onChange={(e) => setDescEn(e.target.value)} /></Field>
+          <Field label="Description (KM)"><textarea className="form-input mb-2" rows={2} value={descKm} onChange={(e) => setDescKm(e.target.value)} /></Field>
+          <div className="flex gap-2 mt-2">
+            <button onClick={() => { onSave(nameEn, nameKm, descEn, descKm); setEditing(false); }} className="btn-gradient px-3 py-1.5 rounded text-xs font-semibold">Save</button>
             <button onClick={() => setEditing(false)} className="px-3 py-1.5 rounded text-xs border" style={{ borderColor: 'var(--border-color)' }}>Cancel</button>
           </div>
         </>
@@ -910,12 +933,12 @@ function ToolCard({ tool, onToggle, onSave }: { tool: Tool; onToggle: () => void
 }
 
 // ============ CHAT ============
-function ChatTab({ chatSettings, showToast, logAction }: { chatSettings: ChatSettings; showToast: (m: string, t?: 'success' | 'error') => void; logAction: (a: string, d: string) => Promise<void> }) {
+function ChatTab({ chatSettings, showToast, logAction }: any) {
   const [form, setForm] = useState(chatSettings);
   const [questionsText, setQuestionsText] = useState((chatSettings.suggested_questions || []).join('\n'));
 
   const save = async () => {
-    const questions = questionsText.split('\n').map((s) => s.trim()).filter(Boolean);
+    const questions = questionsText.split('\n').map((s: string) => s.trim()).filter(Boolean);
     const { error } = await supabase.from('chat_settings').update({ ...form, suggested_questions: questions, updated_at: new Date().toISOString() }).eq('id', 1);
     if (error) { showToast('Save failed', 'error'); return; }
     await logAction('UPDATE', 'Updated chat assistant settings');
@@ -939,8 +962,8 @@ function ChatTab({ chatSettings, showToast, logAction }: { chatSettings: ChatSet
 }
 
 // ============ SECURITY ============
-function SecurityTab({ session, logs }: { session: any; logs: ActivityLog[] }) {
-  const recentLogins = logs.filter((l) => l.action === 'LOGIN' || l.action === 'LOGOUT').slice(0, 10);
+function SecurityTab({ session, logs }: any) {
+  const recentLogins = logs.filter((l: any) => l.action === 'LOGIN' || l.action === 'LOGOUT').slice(0, 10);
 
   return (
     <div className="max-w-2xl">
@@ -960,7 +983,7 @@ function SecurityTab({ session, logs }: { session: any; logs: ActivityLog[] }) {
           <p className="text-sm" style={{ color: 'var(--text-muted)' }}>No recent activity.</p>
         ) : (
           <div className="flex flex-col gap-2">
-            {recentLogins.map((log) => (
+            {recentLogins.map((log: any) => (
               <div key={log.id} className="flex justify-between text-sm py-2 border-b" style={{ borderColor: 'var(--border-color)' }}>
                 <span className="font-semibold">{log.action}</span>
                 <span style={{ color: 'var(--text-muted)' }}>{new Date(log.created_at).toLocaleString()}</span>
@@ -974,7 +997,7 @@ function SecurityTab({ session, logs }: { session: any; logs: ActivityLog[] }) {
 }
 
 // ============ LOGS ============
-function LogsTab({ logs }: { logs: ActivityLog[] }) {
+function LogsTab({ logs }: any) {
   return (
     <div className="card overflow-hidden">
       <table className="w-full text-sm">
@@ -989,7 +1012,7 @@ function LogsTab({ logs }: { logs: ActivityLog[] }) {
           {logs.length === 0 && (
             <tr><td colSpan={3} className="p-6 text-center" style={{ color: 'var(--text-muted)' }}>No activity recorded yet.</td></tr>
           )}
-          {logs.map((log) => (
+          {logs.map((log: any) => (
             <tr key={log.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
               <td className="p-3"><span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ background: 'rgba(59,130,246,0.15)', color: 'var(--primary)' }}>{log.action}</span></td>
               <td className="p-3">{log.details}</td>
