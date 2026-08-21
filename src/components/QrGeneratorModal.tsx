@@ -13,6 +13,8 @@ export function QrGeneratorModal({ open, onClose }: Props) {
   const [dotsColor, setDotsColor] = useState('#4f46e5');
   const [bgColor, setBgColor] = useState('#ffffff');
   const [logoUrl, setLogoUrl] = useState('');
+  const [dotsType, setDotsType] = useState('rounded');
+  const [cornerType, setCornerType] = useState('extra-rounded');
   const [scriptsLoaded, setScriptsLoaded] = useState(false);
   
   const qrRef = useRef<HTMLDivElement>(null);
@@ -36,33 +38,33 @@ export function QrGeneratorModal({ open, onClose }: Props) {
 
     if (!qrCodeInstance.current) {
       qrCodeInstance.current = new QRCodeStyling({
-        width: 250,
-        height: 250,
+        width: 1000,
+        height: 1000,
         data: data || 'https://example.com',
         image: logoUrl,
-        dotsOptions: { color: dotsColor, type: 'rounded' },
+        dotsOptions: { color: dotsColor, type: dotsType as any },
         backgroundOptions: { color: bgColor },
-        imageOptions: { crossOrigin: 'anonymous', margin: 10 },
-        cornersSquareOptions: { type: 'extra-rounded', color: dotsColor },
+        imageOptions: { crossOrigin: 'anonymous', margin: 15, imageSize: 0.5 },
+        cornersSquareOptions: { type: cornerType as any, color: dotsColor },
         cornersDotOptions: { type: 'dot', color: dotsColor }
       });
       qrRef.current.innerHTML = '';
       qrCodeInstance.current.append(qrRef.current);
     }
-  }, [scriptsLoaded, open, data, dotsColor, bgColor, logoUrl]);
+  }, [scriptsLoaded, open, data, dotsColor, bgColor, logoUrl, dotsType, cornerType]);
 
   useEffect(() => {
     if (qrCodeInstance.current) {
       qrCodeInstance.current.update({
         data: data || 'https://example.com',
         image: logoUrl,
-        dotsOptions: { color: dotsColor },
+        dotsOptions: { color: dotsColor, type: dotsType as any },
         backgroundOptions: { color: bgColor },
-        cornersSquareOptions: { color: dotsColor },
-        cornersDotOptions: { color: dotsColor }
+        cornersSquareOptions: { type: cornerType as any, color: dotsColor },
+        cornersDotOptions: { type: 'dot', color: dotsColor }
       });
     }
-  }, [data, dotsColor, bgColor, logoUrl]);
+  }, [data, dotsColor, bgColor, logoUrl, dotsType, cornerType]);
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -75,7 +77,7 @@ export function QrGeneratorModal({ open, onClose }: Props) {
 
   const downloadQr = () => {
     if (qrCodeInstance.current) {
-      qrCodeInstance.current.download({ name: 'custom-qr-code', extension: 'png' });
+      qrCodeInstance.current.download({ name: 'custom-high-res-qr', extension: 'png' });
     }
   };
 
@@ -87,8 +89,15 @@ export function QrGeneratorModal({ open, onClose }: Props) {
       style={{ background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(5px)' }}
       onClick={onClose}
     >
+      <style>{`
+        .qr-canvas-wrapper canvas, .qr-canvas-wrapper svg {
+          width: 100% !important;
+          height: auto !important;
+        }
+      `}</style>
+
       <div
-        className="w-[90%] max-w-[700px] p-6 sm:p-10 rounded-2xl relative max-h-[90vh] overflow-y-auto"
+        className="w-[90%] max-w-[800px] p-6 sm:p-10 rounded-2xl relative max-h-[90vh] overflow-y-auto"
         style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', boxShadow: '0 25px 50px rgba(0,0,0,0.5)' }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -97,7 +106,7 @@ export function QrGeneratorModal({ open, onClose }: Props) {
         </button>
         
         <h3 className="flex items-center gap-2 mb-6 text-lg font-bold" style={{ color: 'var(--text-main)' }}>
-          <QrCode size={20} style={{ color: 'var(--primary)' }} /> {t('Custom QR Generator', 'បង្កើតកូដ QR តាមបំណង')}
+          <QrCode size={20} style={{ color: 'var(--primary)' }} /> {t('High Quality QR Generator', 'បង្កើតកូដ QR កម្រិតខ្ពស់')}
         </h3>
 
         <div className="grid md:grid-cols-2 gap-8">
@@ -112,6 +121,28 @@ export function QrGeneratorModal({ open, onClose }: Props) {
                 className="w-full px-4 py-3 rounded-lg text-sm outline-none"
                 style={{ background: 'var(--bg-base)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}
               />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block mb-2 text-sm font-semibold text-[var(--text-muted)]">{t('Pattern Style', 'ស្តាយកូដ')}</label>
+                <select value={dotsType} onChange={(e) => setDotsType(e.target.value)} className="w-full px-4 py-2.5 rounded-lg text-sm outline-none" style={{ background: 'var(--bg-base)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}>
+                  <option value="rounded">Rounded</option>
+                  <option value="dots">Dots</option>
+                  <option value="classy">Classy</option>
+                  <option value="classysquares">Classy Squares</option>
+                  <option value="squares">Squares</option>
+                  <option value="extra-rounded">Extra Rounded</option>
+                </select>
+              </div>
+              <div>
+                <label className="block mb-2 text-sm font-semibold text-[var(--text-muted)]">{t('Corner Style', 'ស្តាយជ្រុង')}</label>
+                <select value={cornerType} onChange={(e) => setCornerType(e.target.value)} className="w-full px-4 py-2.5 rounded-lg text-sm outline-none" style={{ background: 'var(--bg-base)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}>
+                  <option value="extra-rounded">Extra Rounded</option>
+                  <option value="square">Square</option>
+                  <option value="dot">Dot</option>
+                </select>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -152,11 +183,11 @@ export function QrGeneratorModal({ open, onClose }: Props) {
           </div>
 
           <div className="flex flex-col items-center justify-center gap-4 p-4 rounded-xl" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-color)' }}>
-            <div ref={qrRef} className="bg-white p-2 rounded-xl" />
+            <div ref={qrRef} className="bg-white p-2 rounded-xl flex items-center justify-center overflow-hidden w-full max-w-[280px] qr-canvas-wrapper" style={{ aspectRatio: '1/1' }} />
             <button
               onClick={downloadQr}
               disabled={!scriptsLoaded}
-              className="btn-gradient w-full py-3 rounded-lg font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-50"
+              className="btn-gradient w-full py-3 rounded-lg font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-50 mt-auto"
             >
               <Download size={16} /> {t('Download QR Code', 'ទាញយក QR')}
             </button>

@@ -50,14 +50,27 @@ export function usePortfolioData() {
       
       setVisitorCount(vis.data?.total_visits || 0);
     } catch (error) {
-      console.error("Error fetching data:", error);
+      console.error(error);
     } finally {
       setLoading(false);
     }
   }, []);
 
+  const recordVisit = useCallback(async () => {
+    const visited = sessionStorage.getItem('site_visited');
+    if (!visited) {
+      try {
+        await supabase.rpc('increment_visitor');
+        sessionStorage.setItem('site_visited', 'true');
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  }, []);
+
   useEffect(() => {
     fetchAll();
+    recordVisit();
 
     const channel = supabase.channel('public-data-sync')
       .on('postgres_changes', { event: '*', schema: 'public' }, (payload) => {
@@ -66,6 +79,8 @@ export function usePortfolioData() {
           if (newStat && newStat.item_id) {
             setStats(prev => ({ ...prev, [newStat.item_id]: newStat }));
           }
+        } else if (payload.table === 'visitor_stats') {
+          setVisitorCount((payload.new as any).total_visits || 0);
         } else {
           fetchAll();
         }
@@ -75,7 +90,7 @@ export function usePortfolioData() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [fetchAll]);
+  }, [fetchAll, recordVisit]);
 
   const incrementView = async (itemId: string) => {
     try {
@@ -105,7 +120,7 @@ export function usePortfolioData() {
         await supabase.rpc('decrement_like', { p_item_id: itemId });
       }
     } catch (error) {
-      console.error("Failed to update like status", error);
+      console.error(error);
     }
   };
 
