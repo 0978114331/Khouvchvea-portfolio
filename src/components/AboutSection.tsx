@@ -22,10 +22,11 @@ type Props = {
 
 export function AboutSection({ about, tools, visitorCount, onToolClick }: Props) {
   const { lang, t } = useApp();
-  const title = lang === 'km' ? about.title_km : about.title_en;
-  const heading = lang === 'km' ? about.heading_km || about.heading_en : about.heading_en;
-  const p1 = lang === 'km' ? about.paragraph1_km || about.paragraph1_en : about.paragraph1_en;
-  const p2 = lang === 'km' ? about.paragraph2_km || about.paragraph2_en : about.paragraph2_en;
+  
+  const title = lang === 'km' ? (about as any).title_km || about.title_en : about.title_en;
+  const heading = lang === 'km' ? (about as any).heading_km || about.heading_en : about.heading_en;
+  const p1 = lang === 'km' ? (about as any).paragraph1_km || about.paragraph1_en : about.paragraph1_en;
+  const p2 = lang === 'km' ? (about as any).paragraph2_km || about.paragraph2_en : about.paragraph2_en;
 
   const activeTools = tools.filter((t) => t.enabled);
   

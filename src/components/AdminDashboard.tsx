@@ -883,23 +883,35 @@ function ToolsTab({ tools, showToast, logAction, refetch }: any) {
       return; 
     }
 
-    const payload = { ...form, sort_order: editing?.sort_order || tools.length + 1 };
+    const payload: any = { ...form, sort_order: editing?.sort_order || tools.length + 1 };
 
-    if (editing) {
-      const { error } = await supabase.from('tools').update({ ...payload, updated_at: new Date().toISOString() }).eq('id', editing.id);
-      if (error) { showToast('Update failed', 'error'); return; }
-      await logAction('UPDATE', `Updated tool: ${form.name_en}`);
-      showToast('Tool updated!');
-    } else {
-      const { error } = await supabase.from('tools').insert(payload);
-      if (error) { showToast('Create failed', 'error'); return; }
-      await logAction('CREATE', `Created tool: ${form.name_en}`);
-      showToast('Tool created!');
+    try {
+      if (editing) {
+        payload.updated_at = new Date().toISOString();
+        const { error } = await supabase.from('tools').update(payload).eq('id', editing.id);
+        if (error) throw error;
+        
+        await logAction('UPDATE', `Updated tool: ${form.name_en}`);
+        showToast('Tool updated!');
+      } else {
+        payload.id = `tool-${Date.now()}`;
+        
+        const { error } = await supabase.from('tools').insert(payload);
+        if (error) throw error;
+        
+        await logAction('CREATE', `Created tool: ${form.name_en}`);
+        showToast('Tool created!');
+      }
+      
+      setShowForm(false);
+      setForm(initialFormState);
+      await refetch();
+      
+    } catch (err: any) {
+      console.error("Supabase Save Error:", err);
+      alert(`Database Error: ${err.message || 'Unknown error occurred'}`);
+      showToast('Action failed', 'error');
     }
-    
-    setShowForm(false);
-    setForm(initialFormState);
-    await refetch();
   };
 
   const del = async (t: any) => {
