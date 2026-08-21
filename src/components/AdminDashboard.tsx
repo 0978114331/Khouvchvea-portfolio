@@ -216,7 +216,6 @@ export function AdminDashboard({ onExit }: Props) {
   );
 }
 
-// ============ OVERVIEW ============
 function OverviewTab({ projects, documents, skillCategories, messages, stats, visitorCount }: any) {
   const totalViews = Object.values(stats as Record<string, Stats>).reduce((sum, s) => sum + (s.views || 0), 0);
   const totalLikes = Object.values(stats as Record<string, Stats>).reduce((sum, s) => sum + (s.likes || 0), 0);
@@ -253,7 +252,6 @@ function OverviewTab({ projects, documents, skillCategories, messages, stats, vi
   );
 }
 
-// ============ PROJECTS ============
 function ProjectsTab({ projects, stats, showToast, logAction, refetch }: any) {
   const [editing, setEditing] = useState<Project | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -383,7 +381,6 @@ function ProjectsTab({ projects, stats, showToast, logAction, refetch }: any) {
   );
 }
 
-// ============ DOCUMENTS ============
 function DocumentsTab({ documents, stats, showToast, logAction, refetch }: any) {
   const [editing, setEditing] = useState<Document | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -488,7 +485,6 @@ function DocumentsTab({ documents, stats, showToast, logAction, refetch }: any) 
   );
 }
 
-// ============ SKILLS ============
 function SkillsTab({ categories, showToast, logAction, refetch }: any) {
   const [showCatForm, setShowCatForm] = useState(false);
   const [catForm, setCatForm] = useState({ title_en: '', title_km: '', icon: 'server' });
@@ -563,12 +559,12 @@ function SkillsTab({ categories, showToast, logAction, refetch }: any) {
             <Field label="Category Title (KM)"><input className="form-input" value={catForm.title_km} onChange={(e) => setCatForm({ ...catForm, title_km: e.target.value })} /></Field>
             <Field label="Select Icon">
               <select className="form-input" value={catForm.icon} onChange={(e) => setCatForm({ ...catForm, icon: e.target.value })}>
-                <option value="laptop-code">💻 Web & Code (laptop-code)</option>
-                <option value="server">🗄️ Backend & DB (server)</option>
-                <option value="screwdriver-wrench">🛠️ Design & Tools (screwdriver-wrench)</option>
-                <option value="smartphone">📱 Mobile App (smartphone)</option>
-                <option value="terminal">🖥️ Terminal (terminal)</option>
-                <option value="globe">🌐 Network (globe)</option>
+                <option value="laptop-code">Web & Code (laptop-code)</option>
+                <option value="server">Backend & DB (server)</option>
+                <option value="screwdriver-wrench">Design & Tools (screwdriver-wrench)</option>
+                <option value="smartphone">Mobile App (smartphone)</option>
+                <option value="terminal">Terminal (terminal)</option>
+                <option value="globe">Network (globe)</option>
               </select>
             </Field>
           </div>
@@ -613,7 +609,6 @@ function SkillsTab({ categories, showToast, logAction, refetch }: any) {
   );
 }
 
-// ============ HERO ============
 function HeroTab({ hero, showToast, logAction }: any) {
   const [form, setForm] = useState(hero);
   const [phrasesText, setPhrasesText] = useState((hero.typing_phrases || []).join('\n'));
@@ -656,15 +651,11 @@ function HeroTab({ hero, showToast, logAction }: any) {
   );
 }
 
-// ============ ABOUT ============
 function AboutTab({ about, showToast, logAction }: any) {
   const [form, setForm] = useState(about);
-  const [featuresText, setFeaturesText] = useState(JSON.stringify(about.feature_cards || [], null, 2));
 
   const save = async () => {
-    let featureCards;
-    try { featureCards = JSON.parse(featuresText); } catch { showToast('Feature cards JSON invalid', 'error'); return; }
-    const { error } = await supabase.from('about').update({ ...form, feature_cards: featureCards, updated_at: new Date().toISOString() }).eq('id', 1);
+    const { error } = await supabase.from('about').update({ ...form, updated_at: new Date().toISOString() }).eq('id', 1);
     if (error) { showToast('Save failed', 'error'); return; }
     await logAction('UPDATE', 'Updated about section');
     showToast('About updated!');
@@ -689,14 +680,12 @@ function AboutTab({ about, showToast, logAction }: any) {
           <Field label="Years Learning"><input className="form-input" value={form.years_learning} onChange={(e) => setForm({ ...form, years_learning: e.target.value })} /></Field>
           <Field label="Projects Completed"><input className="form-input" value={form.projects_completed} onChange={(e) => setForm({ ...form, projects_completed: e.target.value })} /></Field>
         </div>
-        <Field label="Feature Cards (JSON array)"><textarea className="form-input font-mono text-xs" rows={6} value={featuresText} onChange={(e) => setFeaturesText(e.target.value)} /></Field>
       </div>
       <button onClick={save} className="btn-gradient px-5 py-2 rounded-lg text-sm font-semibold mt-4 flex items-center gap-2"><Save size={16} /> Save About</button>
     </div>
   );
 }
 
-// ============ SETTINGS ============
 function SettingsTab({ settings, showToast, logAction }: any) {
   const [form, setForm] = useState(settings);
 
@@ -730,7 +719,6 @@ function SettingsTab({ settings, showToast, logAction }: any) {
   );
 }
 
-// ============ MESSAGES ============
 function MessagesTab({ messages, showToast, logAction, refetch }: any) {
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
@@ -800,7 +788,6 @@ function MessagesTab({ messages, showToast, logAction, refetch }: any) {
   );
 }
 
-// ============ ANALYTICS ============
 function AnalyticsTab({ stats, visitorCount, projects, documents }: any) {
   const totalViews = Object.values(stats as Record<string, Stats>).reduce((sum, s) => sum + (s.views || 0), 0);
   const totalLikes = Object.values(stats as Record<string, Stats>).reduce((sum, s) => sum + (s.likes || 0), 0);
@@ -864,9 +851,67 @@ function AnalyticsTab({ stats, visitorCount, projects, documents }: any) {
   );
 }
 
-// ============ TOOLS ============
 function ToolsTab({ tools, showToast, logAction, refetch }: any) {
-  const toggle = async (tool: Tool) => {
+  const [editing, setEditing] = useState<any | null>(null);
+  const [showForm, setShowForm] = useState(false);
+  const initialFormState = { name_en: '', name_km: '', description_en: '', description_km: '', icon: 'link', url: '', enabled: true };
+  const [form, setForm] = useState(initialFormState);
+
+  const startEdit = (t: any) => {
+    setEditing(t);
+    setForm({ 
+      name_en: t.name_en || '', 
+      name_km: t.name_km || '', 
+      description_en: t.description_en || '', 
+      description_km: t.description_km || '', 
+      icon: t.icon || 'link', 
+      url: t.url || '', 
+      enabled: t.enabled !== false 
+    });
+    setShowForm(true);
+  };
+
+  const startNew = () => {
+    setEditing(null);
+    setForm(initialFormState);
+    setShowForm(true);
+  };
+
+  const save = async () => {
+    if (!form.name_en || !form.name_en.trim()) { 
+      showToast('Tool name (EN) is required', 'error'); 
+      return; 
+    }
+
+    const payload = { ...form, sort_order: editing?.sort_order || tools.length + 1 };
+
+    if (editing) {
+      const { error } = await supabase.from('tools').update({ ...payload, updated_at: new Date().toISOString() }).eq('id', editing.id);
+      if (error) { showToast('Update failed', 'error'); return; }
+      await logAction('UPDATE', `Updated tool: ${form.name_en}`);
+      showToast('Tool updated!');
+    } else {
+      const { error } = await supabase.from('tools').insert(payload);
+      if (error) { showToast('Create failed', 'error'); return; }
+      await logAction('CREATE', `Created tool: ${form.name_en}`);
+      showToast('Tool created!');
+    }
+    
+    setShowForm(false);
+    setForm(initialFormState);
+    await refetch();
+  };
+
+  const del = async (t: any) => {
+    if (!confirm(`Delete tool "${t.name_en}"?`)) return;
+    const { error } = await supabase.from('tools').delete().eq('id', t.id);
+    if (error) { showToast('Delete failed', 'error'); return; }
+    await logAction('DELETE', `Deleted tool: ${t.name_en}`);
+    showToast('Tool deleted');
+    await refetch();
+  };
+
+  const toggle = async (tool: any) => {
     const { error } = await supabase.from('tools').update({ enabled: !tool.enabled, updated_at: new Date().toISOString() }).eq('id', tool.id);
     if (error) { showToast('Failed', 'error'); return; }
     await logAction('UPDATE', `${tool.enabled ? 'Disabled' : 'Enabled'} tool: ${tool.name_en}`);
@@ -874,62 +919,60 @@ function ToolsTab({ tools, showToast, logAction, refetch }: any) {
     await refetch();
   };
 
-  const save = async (tool: Tool, nameEn: string, nameKm: string, descEn: string, descKm: string) => {
-    const { error } = await supabase.from('tools').update({ name_en: nameEn, name_km: nameKm, description_en: descEn, description_km: descKm, updated_at: new Date().toISOString() }).eq('id', tool.id);
-    if (error) { showToast('Failed', 'error'); return; }
-    await logAction('UPDATE', `Updated tool: ${nameEn}`);
-    showToast('Tool updated!');
-    await refetch();
-  };
-
   return (
-    <div className="grid sm:grid-cols-2 gap-4">
-      {tools.map((tool: any) => (
-        <ToolCard key={tool.id} tool={tool} onToggle={() => toggle(tool)} onSave={(nameEn: string, nameKm: string, descEn: string, descKm: string) => save(tool, nameEn, nameKm, descEn, descKm)} />
-      ))}
-    </div>
-  );
-}
-
-function ToolCard({ tool, onToggle, onSave }: any) {
-  const [editing, setEditing] = useState(false);
-  const [nameEn, setNameEn] = useState(tool.name_en);
-  const [nameKm, setNameKm] = useState(tool.name_km || '');
-  const [descEn, setDescEn] = useState(tool.description_en);
-  const [descKm, setDescKm] = useState(tool.description_km || '');
-
-  return (
-    <div className="card p-5">
-      <div className="flex justify-between items-center mb-3">
-        <h3 className="font-bold">{tool.name_en}</h3>
-        <button onClick={onToggle} className="w-12 h-6 rounded-full transition-all relative" style={{ background: tool.enabled ? '#10b981' : 'var(--border-color)' }}>
-          <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all" style={{ left: tool.enabled ? '26px' : '2px' }} />
+    <div>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-bold">Manage Tools</h2>
+        <button onClick={startNew} className="btn-gradient px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2">
+          <Plus size={16} /> Add Tool
         </button>
       </div>
-      {editing ? (
-        <>
-          <Field label="Name (EN)"><input className="form-input mb-2" value={nameEn} onChange={(e) => setNameEn(e.target.value)} /></Field>
-          <Field label="Name (KM)"><input className="form-input mb-2" value={nameKm} onChange={(e) => setNameKm(e.target.value)} /></Field>
-          <Field label="Description (EN)"><textarea className="form-input mb-2" rows={2} value={descEn} onChange={(e) => setDescEn(e.target.value)} /></Field>
-          <Field label="Description (KM)"><textarea className="form-input mb-2" rows={2} value={descKm} onChange={(e) => setDescKm(e.target.value)} /></Field>
-          <div className="flex gap-2 mt-2">
-            <button onClick={() => { onSave(nameEn, nameKm, descEn, descKm); setEditing(false); }} className="btn-gradient px-3 py-1.5 rounded text-xs font-semibold">Save</button>
-            <button onClick={() => setEditing(false)} className="px-3 py-1.5 rounded text-xs border" style={{ borderColor: 'var(--border-color)' }}>Cancel</button>
+
+      {showForm && (
+        <div className="card p-5 mb-6">
+          <h3 className="font-bold mb-4">{editing ? 'Edit Tool' : 'New Tool'}</h3>
+          <div className="grid sm:grid-cols-2 gap-3 mb-3">
+            <Field label="Name (EN)"><input className="form-input" value={form.name_en} onChange={(e) => setForm({ ...form, name_en: e.target.value })} /></Field>
+            <Field label="Name (KM)"><input className="form-input" value={form.name_km} onChange={(e) => setForm({ ...form, name_km: e.target.value })} /></Field>
+            <Field label="Icon Name (e.g. qrcode, file-pdf, language, zap, link)"><input className="form-input" value={form.icon} onChange={(e) => setForm({ ...form, icon: e.target.value })} /></Field>
+            <Field label="External URL (Leave empty for built-in modals)"><input className="form-input" value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} /></Field>
           </div>
-        </>
-      ) : (
-        <>
-          <p className="text-sm mb-3" style={{ color: 'var(--text-muted)' }}>{tool.description_en}</p>
-          <button onClick={() => setEditing(true)} className="text-xs font-semibold flex items-center gap-1" style={{ color: 'var(--primary)' }}>
-            <Edit size={12} /> Edit
-          </button>
-        </>
+          <Field label="Description (EN)"><textarea className="form-input mb-3" rows={2} value={form.description_en} onChange={(e) => setForm({ ...form, description_en: e.target.value })} /></Field>
+          <Field label="Description (KM)"><textarea className="form-input mb-3" rows={2} value={form.description_km} onChange={(e) => setForm({ ...form, description_km: e.target.value })} /></Field>
+          <label className="flex items-center gap-2 text-sm mt-2 cursor-pointer">
+            <input type="checkbox" checked={form.enabled} onChange={(e) => setForm({ ...form, enabled: e.target.checked })} /> Enabled for public
+          </label>
+          <div className="flex gap-3 mt-4">
+            <button onClick={save} className="btn-gradient px-5 py-2 rounded-lg text-sm font-semibold"><Save size={16} className="inline mr-2" /> Save</button>
+            <button onClick={() => { setShowForm(false); setForm(initialFormState); }} className="px-5 py-2 rounded-lg text-sm font-semibold border" style={{ borderColor: 'var(--border-color)' }}>Cancel</button>
+          </div>
+        </div>
       )}
+
+      <div className="grid sm:grid-cols-2 gap-4">
+        {tools.map((tool: any) => (
+          <div key={tool.id} className="card p-5 flex flex-col justify-between">
+            <div>
+              <div className="flex justify-between items-start mb-2">
+                <h3 className="font-bold text-lg">{tool.name_en}</h3>
+                <button onClick={() => toggle(tool)} className="w-12 h-6 rounded-full transition-all relative" style={{ background: tool.enabled ? '#10b981' : 'var(--border-color)' }}>
+                  <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all" style={{ left: tool.enabled ? '26px' : '2px' }} />
+                </button>
+              </div>
+              <p className="text-sm mb-3" style={{ color: 'var(--text-muted)' }}>{tool.description_en}</p>
+              {tool.url && <a href={tool.url} target="_blank" className="text-xs font-semibold" style={{ color: 'var(--primary)' }}>{tool.url}</a>}
+            </div>
+            <div className="flex justify-end gap-2 mt-4">
+              <button onClick={() => startEdit(tool)} className="p-1.5 rounded hover:bg-blue-500/10" style={{ color: 'var(--primary)' }}><Edit size={16} /></button>
+              <button onClick={() => del(tool)} className="p-1.5 rounded hover:bg-red-500/10" style={{ color: '#ef4444' }}><Trash2 size={16} /></button>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
 
-// ============ CHAT ============
 function ChatTab({ chatSettings, showToast, logAction }: any) {
   const [form, setForm] = useState(chatSettings);
   const [questionsText, setQuestionsText] = useState((chatSettings.suggested_questions || []).join('\n'));
@@ -958,7 +1001,6 @@ function ChatTab({ chatSettings, showToast, logAction }: any) {
   );
 }
 
-// ============ SECURITY ============
 function SecurityTab({ session, logs }: any) {
   const recentLogins = logs.filter((l: any) => l.action === 'LOGIN' || l.action === 'LOGOUT').slice(0, 10);
 
@@ -993,7 +1035,6 @@ function SecurityTab({ session, logs }: any) {
   );
 }
 
-// ============ LOGS ============
 function LogsTab({ logs }: any) {
   return (
     <div className="card overflow-hidden">
@@ -1022,7 +1063,6 @@ function LogsTab({ logs }: any) {
   );
 }
 
-// ============ HELPERS ============
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>

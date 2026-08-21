@@ -1,9 +1,6 @@
-import { useEffect, useState, useCallback } from 'react';
-import { supabase } from '@/lib/supabase';
-import type {
-  SiteSettings, Hero, About, SkillCategory, Project, Document,
-  Tool, ChatSettings, Stats,
-} from '@/lib/supabase';
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from './supabase';
+import type { SiteSettings, Hero, About, SkillCategory, Project, Document, Tool, ChatSettings, Stats } from './supabase';
 
 export function usePortfolioData() {
   const [settings, setSettings] = useState<SiteSettings | null>(null);
@@ -14,77 +11,65 @@ export function usePortfolioData() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [tools, setTools] = useState<Tool[]>([]);
   const [chatSettings, setChatSettings] = useState<ChatSettings | null>(null);
-  const [visitorCount, setVisitorCount] = useState(0);
   const [stats, setStats] = useState<Record<string, Stats>>({});
+  const [visitorCount, setVisitorCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
 
   const fetchAll = useCallback(async () => {
-    const [
-      settingsR, heroR, aboutR, catR, skillsR, projR, docR, toolsR, chatR, visitorR, statsR,
-    ] = await Promise.all([
-      supabase.from('site_settings').select('*').eq('id', 1).maybeSingle(),
-      supabase.from('hero').select('*').eq('id', 1).maybeSingle(),
-      supabase.from('about').select('*').eq('id', 1).maybeSingle(),
-      supabase.from('skill_categories').select('*').order('sort_order'),
-      supabase.from('skills').select('*').order('sort_order'),
-      supabase.from('projects').select('*').order('sort_order'),
-      supabase.from('documents').select('*').order('sort_order'),
-      supabase.from('tools').select('*').order('sort_order'),
-      supabase.from('chat_settings').select('*').eq('id', 1).maybeSingle(),
-      supabase.from('visitor_stats').select('*').eq('id', 1).maybeSingle(),
-      supabase.from('stats').select('*'),
-    ]);
+    try {
+      const [s, h, a, cats, skills, proj, docs, t, chat, st, vis] = await Promise.all([
+        supabase.from('site_settings').select('*').eq('id', 1).maybeSingle(),
+        supabase.from('hero').select('*').eq('id', 1).maybeSingle(),
+        supabase.from('about').select('*').eq('id', 1).maybeSingle(),
+        supabase.from('skill_categories').select('*').order('sort_order'),
+        supabase.from('skills').select('*').order('sort_order'),
+        supabase.from('projects').select('*').order('sort_order'),
+        supabase.from('documents').select('*').order('sort_order'),
+        supabase.from('tools').select('*').order('sort_order'),
+        supabase.from('chat_settings').select('*').eq('id', 1).maybeSingle(),
+        supabase.from('stats').select('*'),
+        supabase.from('visitor_stats').select('*').eq('id', 1).maybeSingle(),
+      ]);
 
-    setSettings(settingsR.data as SiteSettings);
-    setHero(heroR.data as Hero);
-    setAbout(aboutR.data as About);
-
-    const cats = (catR.data || []) as SkillCategory[];
-    const skills = (skillsR.data || []) as any[];
-    const catsWithSkills = cats.map((c) => ({
-      ...c,
-      skills: skills.filter((s) => s.category_id === c.id),
-    }));
-    setSkillCategories(catsWithSkills);
-
-    setProjects((projR.data || []) as Project[]);
-    setDocuments((docR.data || []) as Document[]);
-    setTools((toolsR.data || []) as Tool[]);
-    setChatSettings(chatR.data as ChatSettings);
-    setVisitorCount(visitorR.data?.total_visits || 0);
-
-    const statsMap: Record<string, Stats> = {};
-    (statsR.data || []).forEach((s: any) => {
-      statsMap[s.item_id] = s;
-    });
-    setStats(statsMap);
-    setLoading(false);
+      setSettings(s.data as SiteSettings);
+      setHero(h.data as Hero);
+      setAbout(a.data as About);
+      
+      const catsData = (cats.data || []) as SkillCategory[];
+      const skillsData = (skills.data || []) as any[];
+      setSkillCategories(catsData.map(c => ({ ...c, skills: skillsData.filter(sk => sk.category_id === c.id) })));
+      
+      setProjects((proj.data || []) as Project[]);
+      setDocuments((docs.data || []) as Document[]);
+      setTools((t.data || []) as Tool[]);
+      setChatSettings(chat.data as ChatSettings);
+      
+      const statsMap: Record<string, Stats> = {};
+      (st.data || []).forEach((row: any) => { statsMap[row.item_id] = row; });
+      setStats(statsMap);
+      
+      setVisitorCount(vis.data?.total_visits || 0);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
     fetchAll();
 
-    // Increment visitor once per session
-    if (!sessionStorage.getItem('visited')) {
-      supabase.rpc('increment_visitor').then(() => {
-        sessionStorage.setItem('visited', 'true');
-      });
-    }
-
-    // Realtime subscriptions
-    const channel = supabase
-      .channel('portfolio-realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'site_settings' }, () => fetchAll())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'hero' }, () => fetchAll())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'about' }, () => fetchAll())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'skill_categories' }, () => fetchAll())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'skills' }, () => fetchAll())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, () => fetchAll())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'documents' }, () => fetchAll())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'tools' }, () => fetchAll())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'chat_settings' }, () => fetchAll())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'visitor_stats' }, () => fetchAll())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'stats' }, () => fetchAll())
+    const channel = supabase.channel('public-data-sync')
+      .on('postgres_changes', { event: '*', schema: 'public' }, (payload) => {
+        if (payload.table === 'stats') {
+          const newStat = payload.new as Stats;
+          if (newStat && newStat.item_id) {
+            setStats(prev => ({ ...prev, [newStat.item_id]: newStat }));
+          }
+        } else {
+          fetchAll();
+        }
+      })
       .subscribe();
 
     return () => {
@@ -92,17 +77,41 @@ export function usePortfolioData() {
     };
   }, [fetchAll]);
 
-  const incrementView = useCallback(async (itemId: string) => {
-    await supabase.rpc('increment_stat', { p_item_id: itemId, p_field: 'views' });
-  }, []);
+  const incrementView = async (itemId: string) => {
+    try {
+      await supabase.rpc('increment_view', { p_item_id: itemId });
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
-  const toggleLike = useCallback(async (itemId: string, increment: boolean) => {
-    await supabase.rpc('toggle_like', { p_item_id: itemId, p_increment: increment });
-  }, []);
+  const toggleLike = async (itemId: string, increment: boolean) => {
+    setStats(prev => {
+      const currentStats = prev[itemId] || { item_id: itemId, views: 0, likes: 0 };
+      const currentLikes = currentStats.likes || 0;
+      return {
+        ...prev,
+        [itemId]: {
+          ...currentStats,
+          likes: increment ? currentLikes + 1 : Math.max(0, currentLikes - 1)
+        }
+      };
+    });
+
+    try {
+      if (increment) {
+        await supabase.rpc('increment_like', { p_item_id: itemId });
+      } else {
+        await supabase.rpc('decrement_like', { p_item_id: itemId });
+      }
+    } catch (error) {
+      console.error("Failed to update like status", error);
+    }
+  };
 
   return {
     settings, hero, about, skillCategories, projects, documents, tools,
     chatSettings, visitorCount, stats, loading,
-    incrementView, toggleLike, refetch: fetchAll,
+    incrementView, toggleLike, refetch: fetchAll
   };
 }

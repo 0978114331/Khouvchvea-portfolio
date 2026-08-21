@@ -11,9 +11,11 @@ import { Lightbox } from '@/components/Lightbox';
 import { ChatAssistant } from '@/components/ChatAssistant';
 import { ConverterModal } from '@/components/ConverterModal';
 import { OcrModal } from '@/components/OcrModal';
+import { QrGeneratorModal } from '@/components/QrGeneratorModal';
 import { usePortfolioData } from '@/lib/use-portfolio-data';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
+import type { Tool } from '@/lib/supabase';
 
 type Props = {
   onAdminClick: () => void;
@@ -24,13 +26,14 @@ export function PublicSite({ onAdminClick }: Props) {
   
   const {
     settings, hero, about, skillCategories, projects, documents, tools,
-    chatSettings, visitorCount, stats, loading,
+    chatSettings, visitorCount, stats,
     incrementView, toggleLike, refetch
   } = usePortfolioData();
 
   const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null);
   const [converterOpen, setConverterOpen] = useState(false);
   const [ocrOpen, setOcrOpen] = useState(false);
+  const [qrOpen, setQrOpen] = useState(false);
 
   useEffect(() => {
     const channel = supabase
@@ -60,24 +63,20 @@ export function PublicSite({ onAdminClick }: Props) {
     }
   };
 
-  const handleToolClick = (toolId: string) => {
-    if (toolId === 'converter') setConverterOpen(true);
-    if (toolId === 'ocr') setOcrOpen(true);
-  };
+  const handleToolClick = (tool: Tool) => {
+    const toolName = tool.name_en.toLowerCase();
+    const toolIcon = (tool as any).icon?.toLowerCase() || '';
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-base)' }}>
-        <div className="text-center">
-          <div 
-            className="w-12 h-12 rounded-full border-4 mx-auto mb-4 animate-spin" 
-            style={{ borderTopColor: 'var(--primary)', borderColor: 'var(--border-color)' }} 
-          />
-          <p style={{ color: 'var(--text-muted)' }}>Loading...</p>
-        </div>
-      </div>
-    );
-  }
+    if (toolName.includes('pdf') || toolName.includes('convert') || toolIcon.includes('pdf')) {
+      setConverterOpen(true);
+    } else if (toolName.includes('ocr') || toolName.includes('extract') || toolIcon.includes('language')) {
+      setOcrOpen(true);
+    } else if (toolName.includes('qr') || toolIcon.includes('qrcode')) {
+      setQrOpen(true);
+    } else if ((tool as any).url) {
+      window.open((tool as any).url, '_blank');
+    }
+  };
 
   if (settings?.maintenance_mode) {
     return (
@@ -101,7 +100,7 @@ export function PublicSite({ onAdminClick }: Props) {
 
       {hero && <HeroSection hero={hero} visitorCount={visitorCount || 0} />}
 
-      {about && <AboutSection about={about} visitorCount={visitorCount || 0} onToolClick={handleToolClick} />}
+      {about && <AboutSection about={about} tools={tools || []} visitorCount={visitorCount || 0} onToolClick={handleToolClick} />}
 
       {about && (
         <section id="documents" className="max-w-[1240px] mx-auto px-4 sm:px-8 py-16 sm:py-24">
@@ -147,6 +146,7 @@ export function PublicSite({ onAdminClick }: Props) {
       
       <ConverterModal open={converterOpen} onClose={() => setConverterOpen(false)} />
       <OcrModal open={ocrOpen} onClose={() => setOcrOpen(false)} />
+      <QrGeneratorModal open={qrOpen} onClose={() => setQrOpen(false)} />
     </div>
   );
 }
