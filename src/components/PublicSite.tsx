@@ -12,6 +12,7 @@ import { ChatAssistant } from '@/components/ChatAssistant';
 import { ConverterModal } from '@/components/ConverterModal';
 import { OcrModal } from '@/components/OcrModal';
 import { QrGeneratorModal } from '@/components/QrGeneratorModal';
+import { VaultModal } from '@/components/VaultModal';
 import { usePortfolioData } from '@/lib/use-portfolio-data';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
@@ -25,7 +26,7 @@ export function PublicSite({ onAdminClick }: Props) {
   const { session } = useAuth();
   
   const {
-    settings, hero, about, skillCategories, projects, documents, tools,
+    settings, hero, about, skillCategories, projects, documents, tools, notes,
     chatSettings, visitorCount, stats,
     incrementView, toggleLike, refetch
   } = usePortfolioData();
@@ -34,6 +35,7 @@ export function PublicSite({ onAdminClick }: Props) {
   const [converterOpen, setConverterOpen] = useState(false);
   const [ocrOpen, setOcrOpen] = useState(false);
   const [qrOpen, setQrOpen] = useState(false);
+  const [vaultOpen, setVaultOpen] = useState(false);
 
   useEffect(() => {
     const channel = supabase
@@ -67,7 +69,9 @@ export function PublicSite({ onAdminClick }: Props) {
     const toolName = tool.name_en.toLowerCase();
     const toolIcon = (tool as any).icon?.toLowerCase() || '';
 
-    if (toolName.includes('pdf') || toolName.includes('convert') || toolIcon.includes('pdf')) {
+    if (toolName.includes('vault') || toolIcon.includes('archive')) {
+      setVaultOpen(true);
+    } else if (toolName.includes('pdf') || toolName.includes('convert') || toolIcon.includes('pdf')) {
       setConverterOpen(true);
     } else if (toolName.includes('ocr') || toolName.includes('extract') || toolIcon.includes('language')) {
       setOcrOpen(true);
@@ -147,6 +151,7 @@ export function PublicSite({ onAdminClick }: Props) {
       <ConverterModal open={converterOpen} onClose={() => setConverterOpen(false)} />
       <OcrModal open={ocrOpen} onClose={() => setOcrOpen(false)} />
       <QrGeneratorModal open={qrOpen} onClose={() => setQrOpen(false)} />
+      <VaultModal open={vaultOpen} onClose={() => setVaultOpen(false)} notes={notes || []} isAdmin={!!session} />
     </div>
   );
 }

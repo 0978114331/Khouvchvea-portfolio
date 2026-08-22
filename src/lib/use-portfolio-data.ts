@@ -10,6 +10,7 @@ export function usePortfolioData() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [tools, setTools] = useState<Tool[]>([]);
+  const [notes, setNotes] = useState<any[]>([]);
   const [chatSettings, setChatSettings] = useState<ChatSettings | null>(null);
   const [stats, setStats] = useState<Record<string, Stats>>({});
   const [visitorCount, setVisitorCount] = useState<number>(0);
@@ -17,7 +18,7 @@ export function usePortfolioData() {
 
   const fetchAll = useCallback(async () => {
     try {
-      const [s, h, a, cats, skills, proj, docs, t, chat, st, vis] = await Promise.all([
+      const [s, h, a, cats, skills, proj, docs, t, n, chat, st, vis] = await Promise.all([
         supabase.from('site_settings').select('*').eq('id', 1).maybeSingle(),
         supabase.from('hero').select('*').eq('id', 1).maybeSingle(),
         supabase.from('about').select('*').eq('id', 1).maybeSingle(),
@@ -26,6 +27,7 @@ export function usePortfolioData() {
         supabase.from('projects').select('*').order('created_at', { ascending: false }),
         supabase.from('documents').select('*').order('created_at', { ascending: false }),
         supabase.from('tools').select('*').order('sort_order'),
+        supabase.from('personal_notes').select('*').order('created_at', { ascending: false }),
         supabase.from('chat_settings').select('*').eq('id', 1).maybeSingle(),
         supabase.from('stats').select('*'),
         supabase.from('visitor_stats').select('*').eq('id', 1).maybeSingle(),
@@ -42,6 +44,7 @@ export function usePortfolioData() {
       setProjects((proj.data || []) as Project[]);
       setDocuments((docs.data || []) as Document[]);
       setTools((t.data || []) as Tool[]);
+      setNotes(n.data || []);
       setChatSettings(chat.data as ChatSettings);
       
       const statsMap: Record<string, Stats> = {};
@@ -125,7 +128,7 @@ export function usePortfolioData() {
   };
 
   return {
-    settings, hero, about, skillCategories, projects, documents, tools,
+    settings, hero, about, skillCategories, projects, documents, tools, notes,
     chatSettings, visitorCount, stats, loading,
     incrementView, toggleLike, refetch: fetchAll
   };

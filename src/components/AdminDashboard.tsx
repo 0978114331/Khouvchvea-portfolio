@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   LayoutDashboard, FolderKanban, FileText, Cpu, Settings, Mail,
   BarChart3, MessageSquare, Shield, History, LogOut, Menu, X,
-  Eye, Plus, Trash2, Edit, Save, Star, Power, Globe, Moon, Sun,
+  Eye, EyeOff, Plus, Trash2, Edit, Save, Star, Power, Globe, Moon, Sun, Archive, Lock
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { useApp } from '@/lib/app-context';
@@ -15,7 +15,7 @@ import type {
 type TabId =
   | 'overview' | 'projects' | 'documents' | 'skills' | 'hero'
   | 'about' | 'settings' | 'messages' | 'analytics' | 'tools'
-  | 'chat' | 'security' | 'logs';
+  | 'chat' | 'security' | 'logs' | 'vault';
 
 type Props = {
   onExit: () => void;
@@ -35,6 +35,7 @@ export function AdminDashboard({ onExit }: Props) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [tools, setTools] = useState<Tool[]>([]);
+  const [notes, setNotes] = useState<any[]>([]);
   const [chatSettings, setChatSettings] = useState<ChatSettings | null>(null);
   const [messages, setMessages] = useState<ContactMessage[]>([]);
   const [logs, setLogs] = useState<ActivityLog[]>([]);
@@ -51,7 +52,7 @@ export function AdminDashboard({ onExit }: Props) {
   };
 
   const fetchAll = useCallback(async () => {
-    const [s, h, a, cats, skills, proj, docs, t, chat, msg, lg, st, vis] = await Promise.all([
+    const [s, h, a, cats, skills, proj, docs, t, chat, msg, lg, st, vis, n] = await Promise.all([
       supabase.from('site_settings').select('*').eq('id', 1).maybeSingle(),
       supabase.from('hero').select('*').eq('id', 1).maybeSingle(),
       supabase.from('about').select('*').eq('id', 1).maybeSingle(),
@@ -65,6 +66,7 @@ export function AdminDashboard({ onExit }: Props) {
       supabase.from('activity_logs').select('*').order('created_at', { ascending: false }).limit(50),
       supabase.from('stats').select('*'),
       supabase.from('visitor_stats').select('*').eq('id', 1).maybeSingle(),
+      supabase.from('personal_notes').select('*').order('created_at', { ascending: false }),
     ]);
 
     setSettings(s.data as SiteSettings);
@@ -76,6 +78,7 @@ export function AdminDashboard({ onExit }: Props) {
     setProjects((proj.data || []) as Project[]);
     setDocuments((docs.data || []) as Document[]);
     setTools((t.data || []) as Tool[]);
+    setNotes(n.data || []);
     setChatSettings(chat.data as ChatSettings);
     setMessages((msg.data || []) as ContactMessage[]);
     setLogs((lg.data || []) as ActivityLog[]);
@@ -95,7 +98,7 @@ export function AdminDashboard({ onExit }: Props) {
     onExit();
   };
 
-  const navItems: { id: TabId; label: string; icon: typeof LayoutDashboard }[] = [
+  const navItems: { id: TabId; label: string; icon: any }[] = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
     { id: 'projects', label: 'Projects', icon: FolderKanban },
     { id: 'documents', label: 'Documents', icon: FileText },
@@ -106,6 +109,7 @@ export function AdminDashboard({ onExit }: Props) {
     { id: 'messages', label: 'Messages', icon: Mail },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
     { id: 'tools', label: 'Tools', icon: Power },
+    { id: 'vault', label: 'My Vault', icon: Archive },
     { id: 'chat', label: 'Chat Assistant', icon: MessageSquare },
     { id: 'security', label: 'Security', icon: Shield },
     { id: 'logs', label: 'Activity Logs', icon: History },
@@ -195,6 +199,7 @@ export function AdminDashboard({ onExit }: Props) {
           {activeTab === 'messages' && <MessagesTab messages={messages} showToast={showToast} logAction={logAction} refetch={fetchAll} />}
           {activeTab === 'analytics' && <AnalyticsTab stats={stats} visitorCount={visitorCount} projects={projects} documents={documents} />}
           {activeTab === 'tools' && <ToolsTab tools={tools} showToast={showToast} logAction={logAction} refetch={fetchAll} />}
+          {activeTab === 'vault' && <VaultTab notes={notes} showToast={showToast} logAction={logAction} refetch={fetchAll} />}
           {activeTab === 'chat' && chatSettings && <ChatTab chatSettings={chatSettings} showToast={showToast} logAction={logAction} />}
           {activeTab === 'security' && <SecurityTab session={session} logs={logs} />}
           {activeTab === 'logs' && <LogsTab logs={logs} />}
@@ -333,7 +338,7 @@ function ProjectsTab({ projects, stats, showToast, logAction, refetch }: any) {
           <Field label="Description (EN)"><textarea className="form-input mb-3" rows={2} value={form.description_en} onChange={(e) => setForm({ ...form, description_en: e.target.value })} /></Field>
           <Field label="Description (KM)"><textarea className="form-input mb-3" rows={2} value={form.description_km} onChange={(e) => setForm({ ...form, description_km: e.target.value })} /></Field>
           <Field label="Image URLs (one per line)"><textarea className="form-input mb-3" rows={3} value={form.images} onChange={(e) => setForm({ ...form, images: e.target.value })} /></Field>
-          
+
           <div className="flex gap-4 mt-3">
             <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.featured} onChange={(e) => setForm({ ...form, featured: e.target.checked })} /> Featured</label>
             <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.published} onChange={(e) => setForm({ ...form, published: e.target.checked })} /> Published</label>
@@ -492,9 +497,9 @@ function SkillsTab({ categories, showToast, logAction, refetch }: any) {
 
   const addCategory = async () => {
     if (!catForm.title_en) { showToast('Title required', 'error'); return; }
-    
+
     const newId = `cat-${Date.now()}`;
-    
+
     const { error } = await supabase.from('skill_categories').insert({ 
       id: newId, 
       title_en: catForm.title_en,
@@ -502,7 +507,7 @@ function SkillsTab({ categories, showToast, logAction, refetch }: any) {
       icon: catForm.icon,
       sort_order: categories.length + 1 
     });
-    
+
     if (error) { showToast('Failed to add category', 'error'); return; }
     await logAction('CREATE', `Created skill category: ${catForm.title_en}`);
     showToast('Category added!');
@@ -635,7 +640,7 @@ function HeroTab({ hero, showToast, logAction }: any) {
         <Field label="Description (KM)"><textarea className="form-input" rows={3} value={form.description_km} onChange={(e) => setForm({ ...form, description_km: e.target.value })} /></Field>
         <Field label="Typing Phrases (one per line)"><textarea className="form-input" rows={4} value={phrasesText} onChange={(e) => setPhrasesText(e.target.value)} /></Field>
         <Field label="Profile Image URL"><input className="form-input" value={form.profile_image_url} onChange={(e) => setForm({ ...form, profile_image_url: e.target.value })} /></Field>
-        
+
         <div className="grid sm:grid-cols-2 gap-3 mt-2">
           <Field label="Primary Button (EN)"><input className="form-input" value={form.primary_btn_en} onChange={(e) => setForm({ ...form, primary_btn_en: e.target.value })} /></Field>
           <Field label="Primary Button (KM)"><input className="form-input" value={form.primary_btn_km} onChange={(e) => setForm({ ...form, primary_btn_km: e.target.value })} /></Field>
@@ -675,7 +680,7 @@ function AboutTab({ about, showToast, logAction }: any) {
         <Field label="Paragraph 1 (KM)"><textarea className="form-input" rows={2} value={form.paragraph1_km} onChange={(e) => setForm({ ...form, paragraph1_km: e.target.value })} /></Field>
         <Field label="Paragraph 2 (EN)"><textarea className="form-input" rows={2} value={form.paragraph2_en} onChange={(e) => setForm({ ...form, paragraph2_en: e.target.value })} /></Field>
         <Field label="Paragraph 2 (KM)"><textarea className="form-input" rows={2} value={form.paragraph2_km} onChange={(e) => setForm({ ...form, paragraph2_km: e.target.value })} /></Field>
-        
+
         <div className="grid grid-cols-2 gap-3">
           <Field label="Years Learning"><input className="form-input" value={form.years_learning} onChange={(e) => setForm({ ...form, years_learning: e.target.value })} /></Field>
           <Field label="Projects Completed"><input className="form-input" value={form.projects_completed} onChange={(e) => setForm({ ...form, projects_completed: e.target.value })} /></Field>
@@ -890,23 +895,23 @@ function ToolsTab({ tools, showToast, logAction, refetch }: any) {
         payload.updated_at = new Date().toISOString();
         const { error } = await supabase.from('tools').update(payload).eq('id', editing.id);
         if (error) throw error;
-        
+
         await logAction('UPDATE', `Updated tool: ${form.name_en}`);
         showToast('Tool updated!');
       } else {
         payload.id = `tool-${Date.now()}`;
-        
+
         const { error } = await supabase.from('tools').insert(payload);
         if (error) throw error;
-        
+
         await logAction('CREATE', `Created tool: ${form.name_en}`);
         showToast('Tool created!');
       }
-      
+
       setShowForm(false);
       setForm(initialFormState);
       await refetch();
-      
+
     } catch (err: any) {
       console.error("Supabase Save Error:", err);
       alert(`Database Error: ${err.message || 'Unknown error occurred'}`);
@@ -1071,6 +1076,211 @@ function LogsTab({ logs }: any) {
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+function VaultTab({ notes, showToast, logAction, refetch }: any) {
+  const [editing, setEditing] = useState<any | null>(null);
+  const [showForm, setShowForm] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const initialFormState = { title: '', type: 'note', content_url: '', file_name: '', description: '', is_private: true, files: [] as any[] };
+  const [form, setForm] = useState(initialFormState);
+
+  const startEdit = (n: any) => {
+    setEditing(n);
+    setForm({ 
+      title: n.title || '', 
+      type: n.type || 'note', 
+      content_url: n.content_url || '', 
+      file_name: n.file_name || '', 
+      description: n.description || '', 
+      is_private: n.is_private,
+      files: n.files || [] 
+    });
+    setShowForm(true);
+  };
+
+  const startNew = () => {
+    setEditing(null);
+    setForm(initialFormState);
+    setShowForm(true);
+  };
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = Array.from(e.target.files || []);
+    if (selectedFiles.length === 0) return;
+    
+    setUploading(true);
+    const newFiles = [...(form.files || [])];
+
+    for (const file of selectedFiles) {
+      try {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+        const { error } = await supabase.storage.from('vault_files').upload(fileName, file);
+        if (error) throw error;
+        const { data } = supabase.storage.from('vault_files').getPublicUrl(fileName);
+        newFiles.push({ name: file.name, url: data.publicUrl });
+      } catch (err: any) {
+        showToast(`Failed to upload ${file.name}`, 'error');
+      }
+    }
+
+    setForm({ ...form, files: newFiles });
+    setUploading(false);
+    showToast('Files uploaded successfully!');
+  };
+
+  const removeFile = (index: number) => {
+    const newFiles = [...form.files];
+    newFiles.splice(index, 1);
+    setForm({ ...form, files: newFiles });
+  };
+
+  const save = async () => {
+    if (!form.title) { showToast('Title is required', 'error'); return; }
+    const payload: any = { ...form };
+
+    try {
+      if (editing) {
+        payload.updated_at = new Date().toISOString();
+        const { error } = await supabase.from('personal_notes').update(payload).eq('id', editing.id);
+        if (error) throw error;
+        await logAction('UPDATE', `Updated vault item: ${form.title}`);
+        showToast('Vault item updated!');
+      } else {
+        const { error } = await supabase.from('personal_notes').insert(payload);
+        if (error) throw error;
+        await logAction('CREATE', `Created vault item: ${form.title}`);
+        showToast('Vault item created!');
+      }
+      setShowForm(false);
+      setForm(initialFormState);
+      await refetch();
+    } catch (err: any) {
+      showToast('Action failed', 'error');
+    }
+  };
+
+  const del = async (n: any) => {
+    if (!confirm(`Delete "${n.title}"?`)) return;
+    const { error } = await supabase.from('personal_notes').delete().eq('id', n.id);
+    if (error) { showToast('Delete failed', 'error'); return; }
+    await logAction('DELETE', `Deleted vault item: ${n.title}`);
+    showToast('Vault item deleted');
+    await refetch();
+  };
+
+  const toggleVisibility = async (n: any) => {
+    const newStatus = !n.is_private;
+    const { error } = await supabase.from('personal_notes').update({ is_private: newStatus, updated_at: new Date().toISOString() }).eq('id', n.id);
+    if (error) { showToast('Failed to change visibility', 'error'); return; }
+    await logAction('UPDATE', `${newStatus ? 'Made Private' : 'Made Public'} vault item: ${n.title}`);
+    showToast(`Item is now ${newStatus ? 'Private' : 'Public'}`);
+    await refetch();
+  };
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-bold">My Vault (Notes & Files)</h2>
+        <button onClick={startNew} className="btn-gradient px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2">
+          <Plus size={16} /> Add Item
+        </button>
+      </div>
+
+      {showForm && (
+        <div className="card p-5 mb-6">
+          <h3 className="font-bold mb-4">{editing ? 'Edit Item' : 'New Item'}</h3>
+          <div className="grid sm:grid-cols-2 gap-3 mb-4">
+            <Field label="Title"><input className="form-input" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></Field>
+            <Field label="Type">
+              <select className="form-input" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
+                <option value="note">Text Note</option>
+                <option value="link">Website Link</option>
+                <option value="document">Upload Document (PDF, Word, etc.)</option>
+              </select>
+            </Field>
+          </div>
+          
+          {form.type === 'link' && (
+            <Field label="Link URL"><input className="form-input mb-4" value={form.content_url} onChange={(e) => setForm({ ...form, content_url: e.target.value })} placeholder="https://..." /></Field>
+          )}
+
+          {form.type === 'document' && (
+            <div className="mb-4 p-4 border border-dashed rounded-lg" style={{ borderColor: 'var(--border-color)', background: 'var(--bg-base)' }}>
+              <label className="block mb-3 text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>Upload Files (Multiple allowed)</label>
+              
+              <div className="flex flex-col gap-2 mb-4">
+                {form.files.map((f: any, idx: number) => (
+                  <div key={idx} className="flex items-center justify-between p-2 rounded border" style={{ borderColor: 'var(--border-color)', background: 'var(--bg-surface)' }}>
+                    <span className="text-sm font-semibold truncate flex-1" style={{ color: 'var(--primary)' }}>📎 {f.name}</span>
+                    <button onClick={() => removeFile(idx)} className="p-1 rounded text-red-500 hover:bg-red-50"><X size={16} /></button>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                <label className="btn-gradient px-6 py-2.5 rounded-lg cursor-pointer text-sm font-bold flex items-center justify-center transition-transform hover:-translate-y-0.5 disabled:opacity-50">
+                  {uploading ? 'Uploading...' : 'Choose Files'}
+                  <input type="file" multiple onChange={handleUpload} className="hidden" disabled={uploading} />
+                </label>
+              </div>
+            </div>
+          )}
+
+          <Field label="Description / Content"><textarea className="form-input mb-4" rows={4} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></Field>
+          
+          <label className="flex items-center gap-3 text-sm cursor-pointer mb-5 p-3 rounded-lg" style={{ background: 'var(--bg-base)' }}>
+            <input type="checkbox" checked={form.is_private} onChange={(e) => setForm({ ...form, is_private: e.target.checked })} className="accent-[var(--primary)] w-4 h-4" /> 
+            <span className="font-bold flex items-center gap-2" style={{ color: form.is_private ? '#ef4444' : '#10b981' }}>
+              {form.is_private ? <><Lock size={16} /> Private (Hidden from public)</> : <><Globe size={16} /> Public (Visible to everyone)</>}
+            </span>
+          </label>
+
+          <div className="flex gap-3 mt-2 border-t pt-4" style={{ borderColor: 'var(--border-color)' }}>
+            <button onClick={save} disabled={uploading} className="btn-gradient px-5 py-2 rounded-lg text-sm font-semibold disabled:opacity-50"><Save size={16} className="inline mr-2" /> Save</button>
+            <button onClick={() => { setShowForm(false); setForm(initialFormState); }} className="px-5 py-2 rounded-lg text-sm font-semibold border" style={{ borderColor: 'var(--border-color)' }}>Cancel</button>
+          </div>
+        </div>
+      )}
+
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {(notes || []).map((n: any) => (
+          <div key={n.id} className="card p-5 flex flex-col justify-between transition-all hover:shadow-lg" style={{ borderTop: `4px solid ${n.type === 'document' ? '#10b981' : n.type === 'link' ? '#3b82f6' : '#f59e0b'}` }}>
+            <div>
+              <div className="flex justify-between items-start mb-2">
+                <h3 className="font-bold text-base truncate pr-2" title={n.title}>{n.title}</h3>
+                <button 
+                  onClick={() => toggleVisibility(n)} 
+                  title={n.is_private ? "Make Public" : "Make Private"}
+                  className="p-1.5 rounded-full transition-colors flex-shrink-0" 
+                  style={{ background: n.is_private ? 'rgba(239,68,68,0.1)' : 'rgba(16,185,129,0.1)', color: n.is_private ? '#ef4444' : '#10b981' }}
+                >
+                  {n.is_private ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded" style={{ background: 'var(--bg-base)', color: 'var(--text-muted)' }}>
+                {n.type} {n.is_private ? '(Private)' : '(Public)'}
+              </span>
+              <p className="text-sm mt-3 mb-3 line-clamp-3" style={{ color: 'var(--text-muted)' }}>{n.description}</p>
+              
+              {n.type === 'document' && n.files && n.files.length > 0 && (
+                <div className="text-xs font-semibold mb-3 flex flex-col gap-1" style={{ color: '#10b981' }}>
+                  {n.files.map((f: any, idx: number) => (
+                     <span key={idx} className="truncate">📎 {f.name}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="flex justify-end gap-2 mt-2 pt-3 border-t" style={{ borderColor: 'var(--border-color)' }}>
+              <button onClick={() => startEdit(n)} className="p-1.5 rounded hover:bg-blue-500/10" style={{ color: 'var(--primary)' }}><Edit size={16} /></button>
+              <button onClick={() => del(n)} className="p-1.5 rounded hover:bg-red-500/10" style={{ color: '#ef4444' }}><Trash2 size={16} /></button>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

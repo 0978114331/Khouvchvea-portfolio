@@ -1,4 +1,4 @@
-import { FileText, Languages, Wrench, Link as LinkIcon, Zap, QrCode, Image as ImageIcon, type LucideIcon } from 'lucide-react';
+import { FileText, Languages, Wrench, Link as LinkIcon, Zap, QrCode, Image as ImageIcon, Archive, type LucideIcon } from 'lucide-react';
 import { useApp } from '@/lib/app-context';
 import { Reveal } from '@/components/Reveal';
 import type { About, Tool } from '@/lib/supabase';
@@ -10,7 +10,8 @@ const iconMap: Record<string, LucideIcon> = {
   'link': LinkIcon,
   'wrench': Wrench,
   'qrcode': QrCode,
-  'image': ImageIcon
+  'image': ImageIcon,
+  'archive': Archive
 };
 
 type Props = {
@@ -39,6 +40,19 @@ export function AboutSection({ about, tools, visitorCount, onToolClick }: Props)
       description_en: 'Create beautiful QR codes with custom colors and logos.',
       description_km: 'បង្កើតកូដ QR តាមបំណងជាមួយនឹងការប្តូរពណ៌ និងដាក់រូបសញ្ញា។',
       icon: 'qrcode',
+      enabled: true
+    } as any);
+  }
+
+  const hasVaultTool = activeTools.some(t => t.name_en.toLowerCase().includes('vault') || (t as any).icon === 'archive');
+  if (!hasVaultTool) {
+    activeTools.push({
+      id: 'default-vault-tool',
+      name_en: 'My Vault',
+      name_km: 'ឃ្លាំងឯកសារ',
+      description_en: 'Access my shared notes, important links, and documents.',
+      description_km: 'ចូលមើលកំណត់ត្រា តំណភ្ជាប់ និងឯកសារដែលខ្ញុំបានចែករំលែក។',
+      icon: 'archive',
       enabled: true
     } as any);
   }
