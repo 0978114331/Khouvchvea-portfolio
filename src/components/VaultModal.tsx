@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Archive, Link as LinkIcon, FileText, StickyNote, ExternalLink, Download, Lock, Globe, File, Copy, Check } from 'lucide-react';
+import { X, Archive, Link as LinkIcon, FileText, StickyNote, ExternalLink, Download, Lock, Globe, File, Copy, Check, ChevronDown, ChevronUp } from 'lucide-react';
 import { useApp } from '@/lib/app-context';
 
 type Props = {
@@ -71,14 +71,25 @@ export function VaultModal({ open, onClose, notes, isAdmin }: Props) {
               <p className="font-semibold text-lg">{t('Vault is empty.', 'មិនទាន់មានឯកសារនៅឡើយទេ។')}</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 items-start">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
               {visibleNotes.map((note) => {
                 const isExpanded = expandedId === note.id;
+                
                 const fileList = note.files && note.files.length > 0 ? note.files : (note.content_url && note.type === 'document' ? [{ name: note.file_name || 'Document', url: note.content_url }] : []);
+                const linkList = note.links && note.links.length > 0 ? note.links : (note.content_url && note.type === 'link' ? [{ name: 'Link Website', url: note.content_url }] : []);
+
+                const hasLongText = note.description && note.description.length > 100;
+                const hasManyFiles = fileList.length > 1;
+                const hasManyLinks = linkList.length > 1;
+                const needsExpansion = hasLongText || hasManyFiles || hasManyLinks;
+
+                const visibleFiles = isExpanded ? fileList : fileList.slice(0, 1);
+                const visibleLinks = isExpanded ? linkList : linkList.slice(0, 1);
 
                 return (
-                  <div key={note.id} className="p-4 sm:p-5 rounded-2xl border transition-all hover:-translate-y-1 hover:shadow-xl flex flex-col" style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-color)', borderTop: `4px solid ${note.type === 'document' ? '#10b981' : note.type === 'link' ? '#3b82f6' : '#f59e0b'}` }}>
-                    <div className="flex items-start justify-between mb-4">
+                  <div key={note.id} className="p-4 sm:p-5 rounded-2xl border transition-all hover:shadow-xl flex flex-col h-full" style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-color)', borderTop: `4px solid ${note.type === 'document' ? '#10b981' : note.type === 'link' ? '#3b82f6' : '#f59e0b'}` }}>
+                    
+                    <div className="flex items-start justify-between mb-4 flex-shrink-0">
                       <div className="flex items-center gap-3 font-bold text-sm sm:text-base w-full pr-2" style={{ color: 'var(--text-main)' }}>
                         <div className="p-2 rounded-lg bg-black/5 dark:bg-white/5 flex-shrink-0">
                           {getIcon(note.type)}
@@ -105,77 +116,103 @@ export function VaultModal({ open, onClose, notes, isAdmin }: Props) {
                     </div>
                     
                     {note.description && (
-                      <div 
-                        className={`mb-5 group ${note.description.length > 150 ? 'cursor-pointer' : ''}`}
-                        onClick={() => note.description.length > 150 && setExpandedId(isExpanded ? null : note.id)}
-                      >
-                        <p className={`text-sm leading-relaxed select-text whitespace-pre-wrap transition-all duration-300 ${!isExpanded ? 'line-clamp-3' : ''}`} style={{ color: 'var(--text-muted)' }}>
+                      <div className="mb-4">
+                        <p className={`text-sm leading-relaxed select-text whitespace-pre-wrap ${!isExpanded ? 'line-clamp-3' : ''}`} style={{ color: 'var(--text-muted)' }}>
                           {note.description}
                         </p>
-                        {note.description.length > 150 && (
-                          <span className="text-[10px] font-bold text-blue-500 mt-2 inline-block group-hover:underline uppercase tracking-wide">
-                            {isExpanded ? t('Show Less', 'បង្រួមវិញ') : t('Read More...', 'អានបន្ថែម...')}
-                          </span>
-                        )}
                       </div>
                     )}
 
-                    {note.type === 'document' && fileList.length > 0 && (
-                      <div className="mt-auto flex flex-col gap-3 pt-4 border-t" style={{ borderColor: 'var(--border-color)' }}>
-                        {fileList.map((f: any, idx: number) => (
-                          <div key={idx} className="flex flex-col gap-3 p-3 rounded-xl border" style={{ background: 'var(--bg-base)', borderColor: 'var(--border-color)' }}>
-                            <div className="flex items-center gap-2 text-xs sm:text-sm font-semibold">
-                              <File size={16} style={{ color: '#10b981' }} className="flex-shrink-0" />
-                              <span className="truncate flex-1 select-text" style={{ color: 'var(--text-main)' }}>{f.name}</span>
+                    <div className="mt-auto flex flex-col gap-4">
+                      {note.type === 'document' && fileList.length > 0 && (
+                        <div className="flex flex-col gap-3 pt-3 border-t" style={{ borderColor: 'var(--border-color)' }}>
+                          {visibleFiles.map((f: any, idx: number) => (
+                            <div key={idx} className="flex flex-col gap-3">
+                              <div className="flex items-center gap-2 p-3 rounded-lg border text-xs sm:text-sm font-semibold" style={{ background: 'var(--bg-base)', borderColor: 'var(--border-color)' }}>
+                                <File size={16} style={{ color: '#10b981' }} className="flex-shrink-0" />
+                                <span className="truncate flex-1 select-text" style={{ color: 'var(--text-main)' }}>{f.name}</span>
+                              </div>
+                              <div className="flex gap-2 sm:gap-3">
+                                <a
+                                  href={f.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-white"
+                                  style={{ background: '#10b981' }}
+                                >
+                                  <ExternalLink size={16} /> {t('Open', 'បើកមើល')}
+                                </a>
+                                <a
+                                  href={`${f.url}?download=`}
+                                  download={f.name}
+                                  className="flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition-all border shadow-sm hover:shadow-md"
+                                  style={{ background: 'transparent', borderColor: '#10b981', color: '#10b981' }}
+                                >
+                                  <Download size={16} /> {t('Download', 'ទាញយក')}
+                                </a>
+                              </div>
                             </div>
-                            <div className="flex gap-2">
+                          ))}
+                          {!isExpanded && hasManyFiles && (
+                            <div className="text-xs text-center font-semibold italic mt-1" style={{ color: 'var(--text-muted)' }}>
+                              + {fileList.length - 1} ឯកសារទៀត
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {note.type === 'link' && linkList.length > 0 && (
+                        <div className="flex flex-col gap-3 pt-3 border-t" style={{ borderColor: 'var(--border-color)' }}>
+                          {visibleLinks.map((l: any, idx: number) => (
+                            <div key={idx} className="flex flex-col gap-3">
+                              <div className="flex items-center justify-between p-3 rounded-lg border text-xs sm:text-sm" style={{ background: 'var(--bg-base)', borderColor: 'var(--border-color)' }}>
+                                <span className="truncate flex-1 select-text font-semibold" style={{ color: 'var(--text-muted)' }}>{l.url}</span>
+                                <button 
+                                  onClick={(e) => handleCopy(l.url, `link-${note.id}-${idx}`, e)}
+                                  className="ml-2 p-1.5 flex-shrink-0 rounded-md transition-colors hover:bg-black/5 dark:hover:bg-white/10"
+                                  title="Copy Link"
+                                  style={{ color: 'var(--text-main)' }}
+                                >
+                                  {copiedId === `link-${note.id}-${idx}` ? <Check size={16} className="text-green-500" /> : <Copy size={16} />}
+                                </button>
+                              </div>
                               <a
-                                href={f.url}
+                                href={l.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold rounded-lg transition-all shadow-sm hover:shadow-md text-white"
-                                style={{ background: '#10b981' }}
+                                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-white"
+                                style={{ background: '#3b82f6' }}
                               >
-                                <ExternalLink size={14} /> {t('Open', 'បើកមើល')}
-                              </a>
-                              <a
-                                href={`${f.url}?download=`}
-                                download={f.name}
-                                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold rounded-lg transition-all border shadow-sm hover:shadow-md"
-                                style={{ background: 'transparent', borderColor: '#10b981', color: '#10b981' }}
-                              >
-                                <Download size={14} /> {t('Download', 'ទាញយក')}
+                                <ExternalLink size={16} /> {t('Open Link', 'បើកតំណភ្ជាប់')}
                               </a>
                             </div>
-                          </div>
-                        ))}
-                      </div>
+                          ))}
+                          {!isExpanded && hasManyLinks && (
+                            <div className="text-xs text-center font-semibold italic mt-1" style={{ color: 'var(--text-muted)' }}>
+                              + {linkList.length - 1} តំណភ្ជាប់ទៀត
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {needsExpansion && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setExpandedId(isExpanded ? null : note.id);
+                        }}
+                        className="w-full mt-5 pt-3 flex items-center justify-center gap-2 text-[11px] sm:text-xs font-bold uppercase tracking-widest border-t transition-colors hover:bg-black/5 dark:hover:bg-white/5"
+                        style={{ borderColor: 'var(--border-color)', color: 'var(--primary)' }}
+                      >
+                        {isExpanded ? (
+                          <><ChevronUp size={16} /> {t('Show Less', 'បង្រួមវិញ')}</>
+                        ) : (
+                          <><ChevronDown size={16} /> {t('See All', 'មើលទាំងអស់')}</>
+                        )}
+                      </button>
                     )}
 
-                    {note.type === 'link' && note.content_url && (
-                      <div className="mt-auto flex flex-col gap-3 pt-4 border-t" style={{ borderColor: 'var(--border-color)' }}>
-                        <div className="flex items-center justify-between p-3 rounded-lg border text-xs sm:text-sm" style={{ background: 'var(--bg-base)', borderColor: 'var(--border-color)' }}>
-                          <span className="truncate flex-1 select-text" style={{ color: 'var(--text-muted)' }}>{note.content_url}</span>
-                          <button 
-                            onClick={(e) => handleCopy(note.content_url, `link-${note.id}`, e)}
-                            className="ml-2 p-1.5 flex-shrink-0 rounded-md transition-colors hover:bg-black/5 dark:hover:bg-white/10"
-                            title="Copy Link"
-                            style={{ color: 'var(--text-main)' }}
-                          >
-                            {copiedId === `link-${note.id}` ? <Check size={16} className="text-green-500" /> : <Copy size={16} />}
-                          </button>
-                        </div>
-                        <a
-                          href={note.content_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-white"
-                          style={{ background: '#3b82f6' }}
-                        >
-                          <ExternalLink size={16} /> {t('Open Link', 'បើកតំណភ្ជាប់')}
-                        </a>
-                      </div>
-                    )}
                   </div>
                 );
               })}

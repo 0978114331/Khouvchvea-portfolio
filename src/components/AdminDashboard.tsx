@@ -1084,8 +1084,9 @@ function VaultTab({ notes, showToast, logAction, refetch }: any) {
   const [editing, setEditing] = useState<any | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const initialFormState = { title: '', type: 'note', content_url: '', file_name: '', description: '', is_private: true, files: [] as any[] };
+  const initialFormState = { title: '', type: 'note', content_url: '', file_name: '', description: '', is_private: true, files: [] as any[], links: [] as any[] };
   const [form, setForm] = useState(initialFormState);
+  const [linkForm, setLinkForm] = useState({ name: '', url: '' });
 
   const startEdit = (n: any) => {
     setEditing(n);
@@ -1096,7 +1097,8 @@ function VaultTab({ notes, showToast, logAction, refetch }: any) {
       file_name: n.file_name || '', 
       description: n.description || '', 
       is_private: n.is_private,
-      files: n.files || [] 
+      files: n.files || [],
+      links: n.links || []
     });
     setShowForm(true);
   };
@@ -1136,6 +1138,23 @@ function VaultTab({ notes, showToast, logAction, refetch }: any) {
     const newFiles = [...form.files];
     newFiles.splice(index, 1);
     setForm({ ...form, files: newFiles });
+  };
+
+  const addLink = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!linkForm.url) {
+      showToast('Link URL is required', 'error');
+      return;
+    }
+    const newLinks = [...(form.links || []), { name: linkForm.name || 'Website Link', url: linkForm.url }];
+    setForm({ ...form, links: newLinks });
+    setLinkForm({ name: '', url: '' });
+  };
+
+  const removeLink = (index: number) => {
+    const newLinks = [...form.links];
+    newLinks.splice(index, 1);
+    setForm({ ...form, links: newLinks });
   };
 
   const save = async () => {
@@ -1198,14 +1217,34 @@ function VaultTab({ notes, showToast, logAction, refetch }: any) {
             <Field label="Type">
               <select className="form-input" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
                 <option value="note">Text Note</option>
-                <option value="link">Website Link</option>
-                <option value="document">Upload Document (PDF, Word, etc.)</option>
+                <option value="link">Website Links</option>
+                <option value="document">Upload Documents (PDF, Word, etc.)</option>
               </select>
             </Field>
           </div>
           
           {form.type === 'link' && (
-            <Field label="Link URL"><input className="form-input mb-4" value={form.content_url} onChange={(e) => setForm({ ...form, content_url: e.target.value })} placeholder="https://..." /></Field>
+            <div className="mb-4 p-4 border border-dashed rounded-lg" style={{ borderColor: 'var(--border-color)', background: 'var(--bg-base)' }}>
+              <label className="block mb-3 text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>Manage Multiple Links</label>
+              
+              <div className="flex flex-col gap-2 mb-4">
+                {(form.links || []).map((l: any, idx: number) => (
+                  <div key={idx} className="flex items-center justify-between p-2 rounded border" style={{ borderColor: 'var(--border-color)', background: 'var(--bg-surface)' }}>
+                    <div className="flex flex-col flex-1 overflow-hidden pr-2">
+                      <span className="text-sm font-semibold truncate" style={{ color: 'var(--primary)' }}>🔗 {l.name}</span>
+                      <span className="text-xs text-gray-500 truncate">{l.url}</span>
+                    </div>
+                    <button onClick={() => removeLink(idx)} className="p-1 rounded text-red-500 hover:bg-red-50"><X size={16} /></button>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-2">
+                <input className="form-input flex-1" placeholder="Link Title (e.g. Website)" value={linkForm.name} onChange={e => setLinkForm({...linkForm, name: e.target.value})} />
+                <input className="form-input flex-[2]" placeholder="https://..." value={linkForm.url} onChange={e => setLinkForm({...linkForm, url: e.target.value})} />
+                <button onClick={addLink} className="btn-gradient px-4 py-2 rounded-lg text-sm font-semibold">Add</button>
+              </div>
+            </div>
           )}
 
           {form.type === 'document' && (
@@ -1213,7 +1252,7 @@ function VaultTab({ notes, showToast, logAction, refetch }: any) {
               <label className="block mb-3 text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>Upload Files (Multiple allowed)</label>
               
               <div className="flex flex-col gap-2 mb-4">
-                {form.files.map((f: any, idx: number) => (
+                {(form.files || []).map((f: any, idx: number) => (
                   <div key={idx} className="flex items-center justify-between p-2 rounded border" style={{ borderColor: 'var(--border-color)', background: 'var(--bg-surface)' }}>
                     <span className="text-sm font-semibold truncate flex-1" style={{ color: 'var(--primary)' }}>📎 {f.name}</span>
                     <button onClick={() => removeFile(idx)} className="p-1 rounded text-red-500 hover:bg-red-50"><X size={16} /></button>
@@ -1270,6 +1309,14 @@ function VaultTab({ notes, showToast, logAction, refetch }: any) {
                 <div className="text-xs font-semibold mb-3 flex flex-col gap-1" style={{ color: '#10b981' }}>
                   {n.files.map((f: any, idx: number) => (
                      <span key={idx} className="truncate">📎 {f.name}</span>
+                  ))}
+                </div>
+              )}
+
+              {n.type === 'link' && n.links && n.links.length > 0 && (
+                <div className="text-xs font-semibold mb-3 flex flex-col gap-1" style={{ color: '#3b82f6' }}>
+                  {n.links.map((l: any, idx: number) => (
+                     <span key={idx} className="truncate">🔗 {l.name}</span>
                   ))}
                 </div>
               )}
