@@ -85,23 +85,22 @@ export function QrGeneratorModal({ open, onClose }: Props) {
         cornersDotOptions: eyeDotOptions
       };
 
-      if (!qrCodeInstance.current) {
-        qrCodeInstance.current = new QRCodeStyling(options);
-        qrRef.current.innerHTML = '';
-        qrCodeInstance.current.append(qrRef.current);
-      } else {
-        qrCodeInstance.current.update(options);
-      }
+      qrRef.current.innerHTML = '';
+      qrCodeInstance.current = new QRCodeStyling(options);
+      qrCodeInstance.current.append(qrRef.current);
+      
     } catch (err) {
       console.error(err);
     } finally {
-      setTimeout(() => setIsGenerating(false), 400);
+      setTimeout(() => setIsGenerating(false), 300);
     }
   };
 
   useEffect(() => {
     if (scriptsLoaded && open) {
-      generateQRCode();
+      setTimeout(() => {
+        generateQRCode();
+      }, 150);
     }
   }, [scriptsLoaded, open]);
 
