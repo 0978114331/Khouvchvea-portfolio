@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabase';
 import type { SiteSettings, Hero, About, SkillCategory, Project, Document, Tool, ChatSettings, Stats } from './supabase';
 
@@ -15,6 +15,8 @@ export function usePortfolioData() {
   const [stats, setStats] = useState<Record<string, Stats>>({});
   const [visitorCount, setVisitorCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
+
+  const fetchTimeout = useRef<any>(null);
 
   const fetchAll = useCallback(async () => {
     try {
@@ -59,6 +61,13 @@ export function usePortfolioData() {
     }
   }, []);
 
+  const debouncedFetchAll = useCallback(() => {
+    if (fetchTimeout.current) clearTimeout(fetchTimeout.current);
+    fetchTimeout.current = setTimeout(() => {
+      fetchAll();
+    }, 800); 
+  }, [fetchAll]);
+
   const recordVisit = useCallback(async () => {
     const visited = sessionStorage.getItem('site_visited');
     if (!visited) {
@@ -75,17 +84,22 @@ export function usePortfolioData() {
     fetchAll();
     recordVisit();
 
-    const channel = supabase.channel('public-data-sync')
+    const channel = supabase.channel('realtime-portfolio-sync')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'stats' }, (payload) => {
+        const newStat = payload.new as Stats;
+        if (newStat && newStat.item_id) {
+          setStats(prev => ({
+            ...prev,
+            [newStat.item_id]: newStat
+          }));
+        }
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'visitor_stats' }, (payload) => {
+         setVisitorCount((payload.new as any).total_visits || 0);
+      })
       .on('postgres_changes', { event: '*', schema: 'public' }, (payload) => {
-        if (payload.table === 'stats') {
-          const newStat = payload.new as Stats;
-          if (newStat && newStat.item_id) {
-            setStats(prev => ({ ...prev, [newStat.item_id]: newStat }));
-          }
-        } else if (payload.table === 'visitor_stats') {
-          setVisitorCount((payload.new as any).total_visits || 0);
-        } else {
-          fetchAll();
+        if (!['stats', 'visitor_stats', 'activity_logs', 'contact_messages'].includes(payload.table)) {
+          debouncedFetchAll();
         }
       })
       .subscribe();
@@ -93,9 +107,14 @@ export function usePortfolioData() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [fetchAll, recordVisit]);
+  }, [fetchAll, debouncedFetchAll, recordVisit]);
 
   const incrementView = async (itemId: string) => {
+    setStats(prev => {
+      const current = prev[itemId] || { item_id: itemId, views: 0, likes: 0 };
+      return { ...prev, [itemId]: { ...current, views: (current.views || 0) + 1 } };
+    });
+
     try {
       await supabase.rpc('increment_view', { p_item_id: itemId });
     } catch (e) {
@@ -105,15 +124,9 @@ export function usePortfolioData() {
 
   const toggleLike = async (itemId: string, increment: boolean) => {
     setStats(prev => {
-      const currentStats = prev[itemId] || { item_id: itemId, views: 0, likes: 0 };
-      const currentLikes = currentStats.likes || 0;
-      return {
-        ...prev,
-        [itemId]: {
-          ...currentStats,
-          likes: increment ? currentLikes + 1 : Math.max(0, currentLikes - 1)
-        }
-      };
+      const current = prev[itemId] || { item_id: itemId, views: 0, likes: 0 };
+      const newLikes = increment ? (current.likes || 0) + 1 : Math.max(0, (current.likes || 0) - 1);
+      return { ...prev, [itemId]: { ...current, likes: newLikes } };
     });
 
     try {

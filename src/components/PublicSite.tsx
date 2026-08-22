@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { HeroSection } from '@/components/HeroSection';
 import { AboutSection } from '@/components/AboutSection';
@@ -15,7 +15,6 @@ import { QrGeneratorModal } from '@/components/QrGeneratorModal';
 import { VaultModal } from '@/components/VaultModal';
 import { usePortfolioData } from '@/lib/use-portfolio-data';
 import { useAuth } from '@/lib/auth';
-import { supabase } from '@/lib/supabase';
 import type { Tool } from '@/lib/supabase';
 
 type Props = {
@@ -28,7 +27,7 @@ export function PublicSite({ onAdminClick }: Props) {
   const {
     settings, hero, about, skillCategories, projects, documents, tools, notes,
     chatSettings, visitorCount, stats,
-    incrementView, toggleLike, refetch
+    incrementView, toggleLike
   } = usePortfolioData();
 
   const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null);
@@ -36,27 +35,6 @@ export function PublicSite({ onAdminClick }: Props) {
   const [ocrOpen, setOcrOpen] = useState(false);
   const [qrOpen, setQrOpen] = useState(false);
   const [vaultOpen, setVaultOpen] = useState(false);
-
-  useEffect(() => {
-    const channel = supabase
-      .channel('public-db-changes')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public' },
-        () => {
-          if (refetch) {
-            refetch();
-          } else {
-            window.location.reload();
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [refetch]);
 
   const handleImageView = (itemId: string, images: string[], index: number) => {
     if (images.length > 0) {
