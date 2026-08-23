@@ -31,6 +31,8 @@ export function SpinWheelModal({ open, onClose }: Props) {
   }, [namesText]);
 
   useEffect(() => {
+    if (!open) return;
+
     const drawWheel = () => {
       const canvas = canvasRef.current;
       if (!canvas || names.length === 0) return;
@@ -66,7 +68,6 @@ export function SpinWheelModal({ open, onClose }: Props) {
         ctx.textBaseline = 'middle';
         ctx.fillStyle = '#ffffff';
         
-        // ប្រើ Font Siemreap រួមជាមួយ Fallback
         const fontSize = names.length > 20 ? 18 : names.length > 10 ? 24 : 34;
         ctx.font = `bold ${fontSize}px 'Siemreap', 'Khmer OS Siemreap', Arial, sans-serif`;
         
@@ -86,12 +87,11 @@ export function SpinWheelModal({ open, onClose }: Props) {
 
     drawWheel();
 
-    // ឱ្យវាគូរឡើងវិញម្តងទៀតនៅពេល Font Siemreap លោតចេញមកពេញលេញ ដើម្បីកុំឱ្យវាព្រិល ឬអត់ស្គាល់
     document.fonts.ready.then(() => {
       drawWheel();
     });
 
-  }, [names]);
+  }, [names, open]);
 
   const spin = () => {
     if (names.length < 2 || isSpinning) return;
@@ -141,7 +141,6 @@ export function SpinWheelModal({ open, onClose }: Props) {
       style={{ background: 'rgba(3,7,18,0.85)', backdropFilter: 'blur(8px)' }}
       onClick={onClose}
     >
-      {/* ទាញយកហ្វុង Siemreap ពី Google Fonts ដើម្បីធានាថាវាស្គាល់គ្រប់ទូរស័ព្ទ និងកុំព្យូទ័រ */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Siemreap&display=swap');
       `}</style>
