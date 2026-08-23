@@ -1,4 +1,4 @@
-import { FileText, Languages, Wrench, Link as LinkIcon, Zap, QrCode, Image as ImageIcon, Archive, Brain, GraduationCap, BookOpen, Library, Lightbulb, Code, Layers, type LucideIcon } from 'lucide-react';
+import { FileText, Languages, Wrench, Link as LinkIcon, Zap, QrCode, Image as ImageIcon, Archive, Brain, GraduationCap, BookOpen, Library, Lightbulb, Code, Layers, Aperture, Target, PieChart, type LucideIcon } from 'lucide-react';
 import { useApp } from '@/lib/app-context';
 import { Reveal } from '@/components/Reveal';
 import type { About, Tool } from '@/lib/supabase';
@@ -18,7 +18,10 @@ const iconMap: Record<string, LucideIcon> = {
   'library': Library,
   'lightbulb': Lightbulb,
   'code': Code,
-  'layers': Layers
+  'layers': Layers,
+  'aperture': Aperture,
+  'target': Target,
+  'pie-chart': PieChart
 };
 
 type Props = {
@@ -78,7 +81,7 @@ export function AboutSection({ about, tools, visitorCount, onToolClick }: Props)
       <div className="grid md:grid-cols-[1.1fr_0.9fr] gap-8 items-start">
         <Reveal>
           <div>
-            <h3 className="text-lg sm:text-xl font-bold mb-6">{heading}</h3>
+            <h3 className="text-lg sm:text-xl font-bold mb-6 leading-snug">{heading}</h3>
             <p className="text-[var(--text-muted)] leading-relaxed mb-6 text-sm sm:text-base text-justify" style={{ textJustify: 'inter-word' }}>{p1}</p>
             <p className="text-[var(--text-muted)] leading-relaxed text-sm sm:text-base text-justify" style={{ textJustify: 'inter-word' }}>{p2}</p>
           </div>

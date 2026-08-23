@@ -1,4 +1,4 @@
-import { useState, useLayoutEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { HeroSection } from '@/components/HeroSection';
 import { AboutSection } from '@/components/AboutSection';
@@ -14,6 +14,7 @@ import { OcrModal } from '@/components/OcrModal';
 import { QrGeneratorModal } from '@/components/QrGeneratorModal';
 import { VaultModal } from '@/components/VaultModal';
 import { FlashcardModal } from '@/components/FlashcardModal';
+import { SpinWheelModal } from '@/components/SpinWheelModal';
 import { usePortfolioData } from '@/lib/use-portfolio-data';
 import { useAuth } from '@/lib/auth';
 import type { Tool } from '@/lib/supabase';
@@ -25,12 +26,11 @@ type Props = {
 export function PublicSite({ onAdminClick }: Props) {
   const { session } = useAuth();
   
-  // ជួយកុំឱ្យជាប់កន្ទុយ Link ពេល Refresh
-  useLayoutEffect(() => {
-    window.scrollTo(0, 0);
-    if (window.location.hash) {
-      window.history.replaceState(null, '', window.location.pathname);
+  useEffect(() => {
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
     }
+    window.scrollTo(0, 0);
   }, []);
 
   const {
@@ -45,6 +45,7 @@ export function PublicSite({ onAdminClick }: Props) {
   const [qrOpen, setQrOpen] = useState(false);
   const [vaultOpen, setVaultOpen] = useState(false);
   const [flashcardOpen, setFlashcardOpen] = useState(false);
+  const [spinWheelOpen, setSpinWheelOpen] = useState(false);
 
   const handleImageView = (itemId: string, images: string[], index: number) => {
     if (images.length > 0) {
@@ -65,6 +66,13 @@ export function PublicSite({ onAdminClick }: Props) {
       ['book-open', 'brain', 'graduation-cap', 'code', 'lightbulb', 'library', 'layers'].includes(toolIcon)
     ) {
       setFlashcardOpen(true);
+    } else if (
+      toolName.includes('spin') || 
+      toolName.includes('wheel') || 
+      toolName.includes('ឆ្នោត') || 
+      ['aperture', 'target', 'dribbble', 'refresh-cw'].includes(toolIcon)
+    ) {
+      setSpinWheelOpen(true);
     } else if (toolName.includes('pdf') || toolName.includes('convert') || toolIcon === 'file-pdf') {
       setConverterOpen(true);
     } else if (toolName.includes('ocr') || toolName.includes('extract') || toolIcon === 'language') {
@@ -89,16 +97,12 @@ export function PublicSite({ onAdminClick }: Props) {
     );
   }
 
-  // ដំណោះស្រាយនៅទីនេះ៖ បង្ហាញ Loading រហូតដល់ទិន្នន័យកំពូលៗ (Hero និង About) រួចរាល់ ១០០%
   if (!hero || !about) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-6" style={{ background: 'var(--bg-base)' }}>
+      <div className="relative min-h-screen" style={{ background: 'var(--bg-base)', color: 'var(--text-main)' }}>
         <div className="glow-blob glow-1" />
         <div className="glow-blob glow-2" />
-        <div className="flex flex-col items-center gap-4 animate-fade-up">
-          <div className="w-12 h-12 border-4 rounded-full animate-spin" style={{ borderColor: 'rgba(59,130,246,0.2)', borderTopColor: 'var(--primary)' }}></div>
-          <p className="text-xs font-bold tracking-widest uppercase" style={{ color: 'var(--text-muted)' }}>Loading...</p>
-        </div>
+        <Navbar onAdminClick={session ? onAdminClick : undefined} />
       </div>
     );
   }
@@ -110,7 +114,6 @@ export function PublicSite({ onAdminClick }: Props) {
 
       <Navbar onAdminClick={session ? onAdminClick : undefined} />
 
-      {/* Hero & About ឥឡូវនេះមានទិន្នន័យច្បាស់លាស់ មិនខ្លាចលោតរុញគ្នាទៀតទេ */}
       <HeroSection hero={hero} visitorCount={visitorCount || 0} />
       <AboutSection about={about} tools={tools || []} visitorCount={visitorCount || 0} onToolClick={handleToolClick} />
 
@@ -159,6 +162,7 @@ export function PublicSite({ onAdminClick }: Props) {
       <QrGeneratorModal open={qrOpen} onClose={() => setQrOpen(false)} />
       <VaultModal open={vaultOpen} onClose={() => setVaultOpen(false)} notes={notes || []} isAdmin={!!session} />
       <FlashcardModal open={flashcardOpen} onClose={() => setFlashcardOpen(false)} />
+      <SpinWheelModal open={spinWheelOpen} onClose={() => setSpinWheelOpen(false)} />
     </div>
   );
 }
