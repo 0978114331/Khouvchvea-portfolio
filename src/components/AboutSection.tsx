@@ -79,8 +79,8 @@ export function AboutSection({ about, tools, visitorCount, onToolClick }: Props)
         <Reveal>
           <div>
             <h3 className="text-lg sm:text-xl font-bold mb-6">{heading}</h3>
-            <p className="text-[var(--text-muted)] leading-relaxed mb-6 text-sm sm:text-base">{p1}</p>
-            <p className="text-[var(--text-muted)] leading-relaxed text-sm sm:text-base">{p2}</p>
+            <p className="text-[var(--text-muted)] leading-relaxed mb-6 text-sm sm:text-base text-justify" style={{ textJustify: 'inter-word' }}>{p1}</p>
+            <p className="text-[var(--text-muted)] leading-relaxed text-sm sm:text-base text-justify" style={{ textJustify: 'inter-word' }}>{p2}</p>
           </div>
         </Reveal>
 
@@ -123,7 +123,7 @@ export function AboutSection({ about, tools, visitorCount, onToolClick }: Props)
                   </div>
                   <div>
                     <h4 className="font-bold text-sm mb-0.5">{lang === 'km' ? (tool as any).name_km || tool.name_en : tool.name_en}</h4>
-                    <p className="text-xs text-[var(--text-muted)] leading-relaxed">{lang === 'km' ? (tool as any).description_km || tool.description_en : tool.description_en}</p>
+                    <p className="text-xs text-[var(--text-muted)] leading-relaxed text-justify" style={{ textJustify: 'inter-word' }}>{lang === 'km' ? (tool as any).description_km || tool.description_en : tool.description_en}</p>
                   </div>
                 </div>
               );

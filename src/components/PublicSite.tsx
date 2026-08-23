@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { HeroSection } from '@/components/HeroSection';
 import { AboutSection } from '@/components/AboutSection';
@@ -25,6 +25,13 @@ type Props = {
 export function PublicSite({ onAdminClick }: Props) {
   const { session } = useAuth();
   
+  useEffect(() => {
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
+    }
+    window.scrollTo(0, 0);
+  }, []);
+
   const {
     settings, hero, about, skillCategories, projects, documents, tools, notes,
     chatSettings, visitorCount, stats,
