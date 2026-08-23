@@ -49,15 +49,19 @@ export function PublicSite({ onAdminClick }: Props) {
     const toolName = tool.name_en.toLowerCase();
     const toolIcon = (tool as any).icon?.toLowerCase() || '';
 
-    if (toolName.includes('vault') || toolIcon.includes('archive')) {
+    if (toolName.includes('vault') || toolIcon === 'archive') {
       setVaultOpen(true);
-    } else if (toolName.includes('flashcard') || toolName.includes('កាត') || toolIcon.includes('book') || toolIcon.includes('layers')) {
+    } else if (
+      toolName.includes('flashcard') || 
+      toolName.includes('កាត') || 
+      ['book-open', 'brain', 'graduation-cap', 'code', 'lightbulb', 'library', 'layers'].includes(toolIcon)
+    ) {
       setFlashcardOpen(true);
-    } else if (toolName.includes('pdf') || toolName.includes('convert') || toolIcon.includes('pdf')) {
+    } else if (toolName.includes('pdf') || toolName.includes('convert') || toolIcon === 'file-pdf') {
       setConverterOpen(true);
-    } else if (toolName.includes('ocr') || toolName.includes('extract') || toolIcon.includes('language')) {
+    } else if (toolName.includes('ocr') || toolName.includes('extract') || toolIcon === 'language') {
       setOcrOpen(true);
-    } else if (toolName.includes('qr') || toolIcon.includes('qrcode')) {
+    } else if (toolName.includes('qr') || toolIcon === 'qrcode') {
       setQrOpen(true);
     } else if ((tool as any).url) {
       window.open((tool as any).url, '_blank');

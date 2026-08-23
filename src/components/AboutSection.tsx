@@ -1,4 +1,4 @@
-import { FileText, Languages, Wrench, Link as LinkIcon, Zap, QrCode, Image as ImageIcon, Archive, type LucideIcon } from 'lucide-react';
+import { FileText, Languages, Wrench, Link as LinkIcon, Zap, QrCode, Image as ImageIcon, Archive, Brain, GraduationCap, BookOpen, Library, Lightbulb, Code, Layers, type LucideIcon } from 'lucide-react';
 import { useApp } from '@/lib/app-context';
 import { Reveal } from '@/components/Reveal';
 import type { About, Tool } from '@/lib/supabase';
@@ -11,7 +11,14 @@ const iconMap: Record<string, LucideIcon> = {
   'wrench': Wrench,
   'qrcode': QrCode,
   'image': ImageIcon,
-  'archive': Archive
+  'archive': Archive,
+  'brain': Brain,
+  'graduation-cap': GraduationCap,
+  'book-open': BookOpen,
+  'library': Library,
+  'lightbulb': Lightbulb,
+  'code': Code,
+  'layers': Layers
 };
 
 type Props = {
