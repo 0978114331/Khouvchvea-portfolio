@@ -13,6 +13,7 @@ import { ConverterModal } from '@/components/ConverterModal';
 import { OcrModal } from '@/components/OcrModal';
 import { QrGeneratorModal } from '@/components/QrGeneratorModal';
 import { VaultModal } from '@/components/VaultModal';
+import { FlashcardModal } from '@/components/FlashcardModal';
 import { usePortfolioData } from '@/lib/use-portfolio-data';
 import { useAuth } from '@/lib/auth';
 import type { Tool } from '@/lib/supabase';
@@ -35,6 +36,7 @@ export function PublicSite({ onAdminClick }: Props) {
   const [ocrOpen, setOcrOpen] = useState(false);
   const [qrOpen, setQrOpen] = useState(false);
   const [vaultOpen, setVaultOpen] = useState(false);
+  const [flashcardOpen, setFlashcardOpen] = useState(false);
 
   const handleImageView = (itemId: string, images: string[], index: number) => {
     if (images.length > 0) {
@@ -49,6 +51,8 @@ export function PublicSite({ onAdminClick }: Props) {
 
     if (toolName.includes('vault') || toolIcon.includes('archive')) {
       setVaultOpen(true);
+    } else if (toolName.includes('flashcard') || toolName.includes('កាត') || toolIcon.includes('book') || toolIcon.includes('layers')) {
+      setFlashcardOpen(true);
     } else if (toolName.includes('pdf') || toolName.includes('convert') || toolIcon.includes('pdf')) {
       setConverterOpen(true);
     } else if (toolName.includes('ocr') || toolName.includes('extract') || toolIcon.includes('language')) {
@@ -130,6 +134,7 @@ export function PublicSite({ onAdminClick }: Props) {
       <OcrModal open={ocrOpen} onClose={() => setOcrOpen(false)} />
       <QrGeneratorModal open={qrOpen} onClose={() => setQrOpen(false)} />
       <VaultModal open={vaultOpen} onClose={() => setVaultOpen(false)} notes={notes || []} isAdmin={!!session} />
+      <FlashcardModal open={flashcardOpen} onClose={() => setFlashcardOpen(false)} />
     </div>
   );
 }
