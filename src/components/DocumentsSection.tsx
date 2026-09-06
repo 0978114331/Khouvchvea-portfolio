@@ -130,7 +130,6 @@ export function DocumentsSection({ documents, stats, onImageView, onLike }: Prop
 }
 
 function DocThumbnailCard({ doc, images, views, likes, isLiked, lang, onClick, onLike }: any) {
-  
   const handleShare = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (navigator.share) {
@@ -251,8 +250,8 @@ function DocDetailModal({ doc, images, lang, views, likes, isLiked, onLike, onCl
 
   return (
     <div 
-      className="fixed inset-0 z-[99999] flex items-end sm:items-center justify-center sm:p-6"
-      style={{ background: 'rgba(15,23,42,0.85)', backdropFilter: 'blur(5px)' }}
+      className="fixed inset-0 z-[100000] flex items-center justify-center p-4 sm:p-6"
+      style={{ background: 'rgba(15,23,42,0.85)', backdropFilter: 'blur(8px)' }}
       onClick={onClose}
     >
       <style>{`
@@ -260,68 +259,71 @@ function DocDetailModal({ doc, images, lang, views, likes, isLiked, onLike, onCl
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
+      
       <div 
-        className="w-full sm:max-w-[550px] bg-white dark:bg-[#111827] rounded-t-3xl sm:rounded-3xl flex flex-col max-h-[90vh] sm:max-h-[85vh] relative shadow-2xl animate-fade-up overflow-hidden"
+        className="w-full sm:max-w-[500px] h-[85vh] bg-white dark:bg-[#111827] rounded-3xl flex flex-col relative shadow-2xl overflow-hidden animate-fade-up"
         onClick={e => e.stopPropagation()}
       >
         <button 
           onClick={onClose} 
-          className="absolute top-4 right-4 z-50 w-8 h-8 flex items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md transition-transform hover:scale-110"
+          className="absolute top-3 right-3 z-50 w-8 h-8 flex items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-md transition-transform hover:scale-110"
         >
-          <X size={18} />
+          <X size={16} />
         </button>
 
-        <div className="flex-1 w-full flex flex-col overflow-hidden" style={{ background: 'var(--bg-card)' }}>
-          {/* ផ្នែករូបភាព Scroll ដាច់ដោយឡែក */}
-          {images.length > 0 && (
-            <div className="w-full h-[45%] sm:h-[50%] flex-shrink-0 overflow-y-auto bg-gray-100 dark:bg-black/50 hide-scrollbar border-b dark:border-gray-800">
-              <div className="flex flex-col w-full">
-                {images.map((img: string, idx: number) => (
-                  <img key={idx} src={img} className="w-full h-auto object-cover block" alt="Detail" />
-                ))}
-              </div>
+        <div className="w-full h-[45%] flex-shrink-0 overflow-y-auto hide-scrollbar bg-gray-100 dark:bg-black border-b dark:border-gray-800">
+          {images.length > 0 ? (
+            <div className="flex flex-col w-full">
+              {images.map((img: string, idx: number) => (
+                <img key={idx} src={img} className="w-full h-auto object-cover block" alt="" />
+              ))}
             </div>
+          ) : (
+            <div className="w-full h-full flex items-center justify-center"><FileText size={48} className="text-gray-300" /></div>
           )}
+        </div>
 
-          {/* ផ្នែកអក្សរ Scroll ដាច់ដោយឡែក */}
-          <div className="flex-1 overflow-y-auto p-5 sm:p-6 hide-scrollbar">
-            <div className="flex items-center gap-2 text-xs font-semibold text-gray-400 dark:text-gray-500 mb-3">
-              <Clock size={14} /> {formatDate(doc.created_at, doc.date_label, lang)}
+        <div className="w-full h-[55%] flex flex-col relative bg-white dark:bg-slate-900">
+          
+          <div className="flex-1 overflow-y-auto hide-scrollbar p-5 pb-20">
+            <div className="flex items-center gap-2 text-xs font-semibold text-gray-400 mb-3">
+              <Clock size={12} /> {formatDate(doc.created_at, doc.date_label, lang)}
             </div>
             
-            <h2 className="text-xl sm:text-2xl font-black mb-4 leading-snug text-gray-900 dark:text-white" style={{ fontFamily: "'Siemreap', sans-serif" }}>
+            <h2 className="text-lg sm:text-xl font-bold mb-3 text-gray-900 dark:text-white leading-snug" style={{ fontFamily: "'Siemreap', sans-serif" }}>
               {lang === 'km' ? doc.title_km || doc.title_en : doc.title_en}
             </h2>
             
-            <p className="text-sm sm:text-base leading-relaxed text-gray-600 dark:text-gray-300 whitespace-pre-wrap" style={{ fontFamily: "'Siemreap', sans-serif" }}>
+            <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-300 whitespace-pre-wrap" style={{ fontFamily: "'Siemreap', sans-serif" }}>
               {lang === 'km' ? doc.description_km || doc.description_en : doc.description_en}
             </p>
           </div>
-        </div>
 
-        <div className="flex-shrink-0 p-4 sm:p-5 border-t bg-white dark:bg-[#111827] flex items-center justify-between gap-3 shadow-[0_-10px_20px_rgba(0,0,0,0.02)]" style={{ borderColor: 'var(--border-color)' }}>
-          <button 
-            onClick={onLike} 
-            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-bold transition-all"
-            style={{ 
-              background: isLiked ? '#fecdd3' : 'var(--bg-surface)', 
-              color: isLiked ? '#e11d48' : 'var(--text-main)',
-              border: isLiked ? 'none' : '1px solid var(--border-color)'
-            }}
-          >
-            <Heart size={18} fill={isLiked ? 'currentColor' : 'none'} /> 
-            {isLiked ? `Liked (${likes})` : `Like (${likes})`}
-          </button>
+          <div className="absolute bottom-0 left-0 w-full p-4 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-gray-100 dark:border-gray-800 flex items-center gap-3">
+            
+            <button 
+              onClick={onLike} 
+              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold transition-all" 
+              style={{ 
+                background: isLiked ? '#fce7f3' : 'var(--bg-surface)', 
+                color: isLiked ? '#e11d48' : 'var(--text-main)', 
+                border: isLiked ? '1px solid #fbcfe8' : '1px solid var(--border-color)' 
+              }}
+            >
+              <Heart size={16} fill={isLiked ? 'currentColor' : 'none'} /> 
+              {isLiked ? `Liked (${likes})` : `Like (${likes})`}
+            </button>
 
-          <div className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-bold border" style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-color)', color: 'var(--text-muted)' }}>
-            <Eye size={18} /> {views.toLocaleString()} Views
+            <div className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold border" style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-color)', color: 'var(--text-muted)' }}>
+              <Eye size={16} /> {views} Views
+            </div>
+
+            <button onClick={handleShare} className="w-[42px] h-[42px] flex-shrink-0 flex items-center justify-center rounded-xl bg-blue-50 text-blue-500 transition-colors hover:bg-blue-100 dark:bg-blue-500/10 dark:text-blue-400">
+              <Share2 size={18} />
+            </button>
+
           </div>
-
-          <button onClick={handleShare} className="w-[50px] h-[50px] flex-shrink-0 flex items-center justify-center rounded-2xl bg-blue-50 text-blue-600 transition-colors hover:bg-blue-100">
-            <Share2 size={20} />
-          </button>
         </div>
-
       </div>
     </div>
   );
