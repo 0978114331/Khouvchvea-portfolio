@@ -47,6 +47,7 @@ export function DocumentsSection({ documents, stats, onImageView, onLike }: Prop
     setSelectedDoc(doc);
     if (!localViews[itemId]) {
       setLocalViews(prev => ({ ...prev, [itemId]: 1 }));
+      onImageView(itemId, doc.images || [], 0);
     }
   };
 
@@ -130,6 +131,7 @@ export function DocumentsSection({ documents, stats, onImageView, onLike }: Prop
 }
 
 function DocThumbnailCard({ doc, images, views, likes, isLiked, lang, onClick, onLike }: any) {
+  
   const handleShare = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (navigator.share) {
@@ -142,7 +144,7 @@ function DocThumbnailCard({ doc, images, views, likes, isLiked, lang, onClick, o
   };
 
   const renderImageGrid = () => {
-    if (images.length === 0) return <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-slate-800"><FileText size={24} className="text-gray-400" /></div>;
+    if (images.length === 0) return <div className="w-full h-full flex items-center justify-center" style={{ background: 'var(--bg-surface)' }}><FileText size={24} style={{ color: 'var(--text-muted)' }} /></div>;
     if (images.length === 1) return <img src={images[0]} className="w-full h-full object-cover" alt="" />;
     if (images.length === 2) return (
       <div className="flex w-full h-full gap-0.5">
@@ -180,20 +182,20 @@ function DocThumbnailCard({ doc, images, views, likes, isLiked, lang, onClick, o
   return (
     <div 
       onClick={onClick}
-      className="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl overflow-hidden flex flex-col h-full cursor-pointer transition-transform hover:-translate-y-1 hover:shadow-xl"
-      style={{ boxShadow: '0 10px 30px rgba(0,0,0,0.05)', border: '1px solid var(--border-color)' }}
+      className="rounded-2xl sm:rounded-3xl overflow-hidden flex flex-col h-full cursor-pointer transition-transform hover:-translate-y-1 hover:shadow-xl"
+      style={{ background: 'var(--bg-card)', boxShadow: '0 10px 30px rgba(0,0,0,0.05)', border: '1px solid var(--border-color)' }}
     >
-      <div className="h-32 sm:h-48 w-full overflow-hidden bg-gray-50 dark:bg-slate-800">
+      <div className="h-32 sm:h-48 w-full overflow-hidden" style={{ background: 'var(--bg-surface)' }}>
         {renderImageGrid()}
       </div>
 
-      <div className="p-3 sm:p-5 flex flex-col flex-grow">
-        <div className="flex items-center justify-between mb-2 text-[9px] sm:text-xs font-semibold text-gray-400 dark:text-gray-500">
-          <span className="flex items-center gap-1 sm:gap-1.5"><Clock size={10} className="sm:w-[14px] sm:h-[14px]" /> {formatDate(doc.created_at, doc.date_label, lang)}</span>
-          <span className="flex items-center gap-1 sm:gap-1.5"><Eye size={10} className="sm:w-[14px] sm:h-[14px]" /> {views.toLocaleString()}</span>
+      <div className="p-3 sm:p-4 flex flex-col flex-grow">
+        <div className="flex items-center justify-between mb-1.5 text-[9px] sm:text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
+          <span className="flex items-center gap-1 sm:gap-1.5"><Clock size={10} className="sm:w-[12px] sm:h-[12px]" /> {formatDate(doc.created_at, doc.date_label, lang)}</span>
+          <span className="flex items-center gap-1 sm:gap-1.5"><Eye size={10} className="sm:w-[12px] sm:h-[12px]" /> {views.toLocaleString()}</span>
         </div>
         
-        <h4 className="text-xs sm:text-base font-bold mb-1.5 leading-snug line-clamp-2" style={{ color: 'var(--text-main)', fontFamily: "'Siemreap', sans-serif" }}>
+        <h4 className="text-xs sm:text-[15px] font-bold mb-1 leading-snug line-clamp-2" style={{ color: 'var(--text-main)', fontFamily: "'Siemreap', sans-serif" }}>
           {lang === 'km' ? doc.title_km || doc.title_en : doc.title_en}
         </h4>
         
@@ -215,13 +217,13 @@ function DocThumbnailCard({ doc, images, views, likes, isLiked, lang, onClick, o
           </button>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            <a href="https://www.facebook.com/Chvea" target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="text-gray-400 hover:text-blue-500 transition-colors">
+            <a href="https://www.facebook.com/Chvea" target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="transition-colors hover:text-blue-500" style={{ color: 'var(--text-muted)' }}>
               <Facebook size={14} className="sm:w-[16px] sm:h-[16px]" />
             </a>
-            <a href="https://www.youtube.com/@khouvchvea" target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="text-gray-400 hover:text-red-500 transition-colors">
+            <a href="https://www.youtube.com/@khouvchvea" target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="transition-colors hover:text-red-500" style={{ color: 'var(--text-muted)' }}>
               <Youtube size={14} className="sm:w-[16px] sm:h-[16px]" />
             </a>
-            <button onClick={handleShare} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+            <button onClick={handleShare} className="transition-colors hover:text-green-500" style={{ color: 'var(--text-muted)' }}>
               <Share2 size={14} className="sm:w-[16px] sm:h-[16px]" />
             </button>
           </div>
@@ -261,7 +263,8 @@ function DocDetailModal({ doc, images, lang, views, likes, isLiked, onLike, onCl
       `}</style>
       
       <div 
-        className="w-full sm:max-w-[500px] h-[85vh] bg-white dark:bg-[#111827] rounded-3xl flex flex-col relative shadow-2xl overflow-hidden animate-fade-up"
+        className="w-full sm:max-w-[500px] h-[85vh] rounded-3xl flex flex-col relative shadow-2xl overflow-hidden animate-fade-up"
+        style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}
         onClick={e => e.stopPropagation()}
       >
         <button 
@@ -271,7 +274,7 @@ function DocDetailModal({ doc, images, lang, views, likes, isLiked, onLike, onCl
           <X size={16} />
         </button>
 
-        <div className="w-full h-[45%] flex-shrink-0 overflow-y-auto hide-scrollbar bg-gray-100 dark:bg-black border-b dark:border-gray-800">
+        <div className="w-full h-[45%] flex-shrink-0 overflow-y-auto hide-scrollbar border-b" style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-color)' }}>
           {images.length > 0 ? (
             <div className="flex flex-col w-full">
               {images.map((img: string, idx: number) => (
@@ -279,27 +282,27 @@ function DocDetailModal({ doc, images, lang, views, likes, isLiked, onLike, onCl
               ))}
             </div>
           ) : (
-            <div className="w-full h-full flex items-center justify-center"><FileText size={48} className="text-gray-300" /></div>
+            <div className="w-full h-full flex items-center justify-center"><FileText size={48} style={{ color: 'var(--text-muted)' }} /></div>
           )}
         </div>
 
-        <div className="w-full h-[55%] flex flex-col relative bg-white dark:bg-slate-900">
+        <div className="w-full h-[55%] flex flex-col relative" style={{ background: 'var(--bg-card)' }}>
           
           <div className="flex-1 overflow-y-auto hide-scrollbar p-5 pb-20">
-            <div className="flex items-center gap-2 text-xs font-semibold text-gray-400 mb-3">
+            <div className="flex items-center gap-2 text-xs font-semibold mb-2" style={{ color: 'var(--text-muted)' }}>
               <Clock size={12} /> {formatDate(doc.created_at, doc.date_label, lang)}
             </div>
             
-            <h2 className="text-lg sm:text-xl font-bold mb-3 text-gray-900 dark:text-white leading-snug" style={{ fontFamily: "'Siemreap', sans-serif" }}>
+            <h2 className="text-lg sm:text-xl font-bold mb-3 leading-snug" style={{ color: 'var(--text-main)', fontFamily: "'Siemreap', sans-serif" }}>
               {lang === 'km' ? doc.title_km || doc.title_en : doc.title_en}
             </h2>
             
-            <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-300 whitespace-pre-wrap" style={{ fontFamily: "'Siemreap', sans-serif" }}>
+            <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: 'var(--text-muted)', fontFamily: "'Siemreap', sans-serif" }}>
               {lang === 'km' ? doc.description_km || doc.description_en : doc.description_en}
             </p>
           </div>
 
-          <div className="absolute bottom-0 left-0 w-full p-4 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-gray-100 dark:border-gray-800 flex items-center gap-3">
+          <div className="absolute bottom-0 left-0 w-full p-4 flex items-center gap-3 border-t backdrop-blur-md" style={{ background: 'rgba(var(--bg-card-rgb), 0.95)', borderColor: 'var(--border-color)' }}>
             
             <button 
               onClick={onLike} 
@@ -318,7 +321,7 @@ function DocDetailModal({ doc, images, lang, views, likes, isLiked, onLike, onCl
               <Eye size={16} /> {views} Views
             </div>
 
-            <button onClick={handleShare} className="w-[42px] h-[42px] flex-shrink-0 flex items-center justify-center rounded-xl bg-blue-50 text-blue-500 transition-colors hover:bg-blue-100 dark:bg-blue-500/10 dark:text-blue-400">
+            <button onClick={handleShare} className="w-[42px] h-[42px] flex-shrink-0 flex items-center justify-center rounded-xl transition-colors hover:opacity-80" style={{ background: 'rgba(59,130,246,0.1)', color: '#3b82f6' }}>
               <Share2 size={18} />
             </button>
 
