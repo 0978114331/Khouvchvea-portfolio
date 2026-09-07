@@ -45,10 +45,12 @@ export function DocumentsSection({ documents, stats, onImageView, onLike }: Prop
 
   const handleCardClick = (doc: Document, itemId: string) => {
     setSelectedDoc(doc);
-    if (!localViews[itemId]) {
-      setLocalViews(prev => ({ ...prev, [itemId]: 1 }));
-      onImageView(itemId, doc.images || [], 0);
-    }
+    const currentDbViews = stats[itemId]?.views || 0;
+    setLocalViews(prev => ({ 
+      ...prev, 
+      [itemId]: Math.max(prev[itemId] || 0, currentDbViews) + 1 
+    }));
+    onImageView(itemId, doc.images || [], 0);
   };
 
   const toggleLike = (e: React.MouseEvent, itemId: string) => {
@@ -79,7 +81,9 @@ export function DocumentsSection({ documents, stats, onImageView, onLike }: Prop
           const itemId = `doc_${doc.id}`;
           const stat = stats[itemId];
           const isLiked = likedItems.has(itemId);
-          const displayViews = (stat?.views || 0) + (localViews[itemId] || 0);
+          
+          const currentDbViews = stat?.views || 0;
+          const displayViews = Math.max(currentDbViews, localViews[itemId] || 0);
 
           return (
             <Reveal key={doc.id}>
@@ -119,7 +123,7 @@ export function DocumentsSection({ documents, stats, onImageView, onLike }: Prop
           doc={selectedDoc}
           images={selectedDoc.images || []}
           lang={lang}
-          views={(stats[`doc_${selectedDoc.id}`]?.views || 0) + (localViews[`doc_${selectedDoc.id}`] || 0)}
+          views={Math.max(stats[`doc_${selectedDoc.id}`]?.views || 0, localViews[`doc_${selectedDoc.id}`] || 0)}
           likes={stats[`doc_${selectedDoc.id}`]?.likes || 0}
           isLiked={likedItems.has(`doc_${selectedDoc.id}`)}
           onLike={(e: any) => toggleLike(e, `doc_${selectedDoc.id}`)}
@@ -131,7 +135,6 @@ export function DocumentsSection({ documents, stats, onImageView, onLike }: Prop
 }
 
 function DocThumbnailCard({ doc, images, views, likes, isLiked, lang, onClick, onLike }: any) {
-  
   const handleShare = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (navigator.share) {
@@ -190,18 +193,20 @@ function DocThumbnailCard({ doc, images, views, likes, isLiked, lang, onClick, o
       </div>
 
       <div className="p-3 sm:p-4 flex flex-col flex-grow">
-        <div className="flex items-center justify-between mb-1.5 text-[9px] sm:text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
-          <span className="flex items-center gap-1 sm:gap-1.5"><Clock size={10} className="sm:w-[12px] sm:h-[12px]" /> {formatDate(doc.created_at, doc.date_label, lang)}</span>
-          <span className="flex items-center gap-1 sm:gap-1.5"><Eye size={10} className="sm:w-[12px] sm:h-[12px]" /> {views.toLocaleString()}</span>
+        <div className="flex flex-col gap-0.5 flex-grow">
+          <div className="flex items-center justify-between text-[9px] sm:text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
+            <span className="flex items-center gap-1 sm:gap-1.5"><Clock size={10} className="sm:w-[12px] sm:h-[12px]" /> {formatDate(doc.created_at, doc.date_label, lang)}</span>
+            <span className="flex items-center gap-1 sm:gap-1.5"><Eye size={10} className="sm:w-[12px] sm:h-[12px]" /> {views.toLocaleString()}</span>
+          </div>
+          
+          <h4 className="text-xs sm:text-[15px] font-bold leading-snug line-clamp-2 mt-1" style={{ color: 'var(--text-main)', fontFamily: "'Siemreap', sans-serif" }}>
+            {lang === 'km' ? doc.title_km || doc.title_en : doc.title_en}
+          </h4>
+          
+          <p className="text-[10px] sm:text-sm leading-relaxed line-clamp-1 sm:line-clamp-2 mt-1 flex-grow" style={{ color: 'var(--text-muted)', fontFamily: "'Siemreap', sans-serif" }}>
+            {lang === 'km' ? doc.description_km || doc.description_en : doc.description_en}
+          </p>
         </div>
-        
-        <h4 className="text-xs sm:text-[15px] font-bold mb-1 leading-snug line-clamp-2" style={{ color: 'var(--text-main)', fontFamily: "'Siemreap', sans-serif" }}>
-          {lang === 'km' ? doc.title_km || doc.title_en : doc.title_en}
-        </h4>
-        
-        <p className="text-[10px] sm:text-sm leading-relaxed line-clamp-1 sm:line-clamp-2 flex-grow" style={{ color: 'var(--text-muted)', fontFamily: "'Siemreap', sans-serif" }}>
-          {lang === 'km' ? doc.description_km || doc.description_en : doc.description_en}
-        </p>
 
         <div className="flex items-center justify-between mt-3 pt-3 border-t" style={{ borderColor: 'var(--border-color)' }}>
           <button 
@@ -289,7 +294,7 @@ function DocDetailModal({ doc, images, lang, views, likes, isLiked, onLike, onCl
         <div className="w-full h-[55%] flex flex-col relative" style={{ background: 'var(--bg-card)' }}>
           
           <div className="flex-1 overflow-y-auto hide-scrollbar p-5 pb-20">
-            <div className="flex items-center gap-2 text-xs font-semibold mb-2" style={{ color: 'var(--text-muted)' }}>
+            <div className="flex items-center gap-2 text-xs font-semibold mb-1.5" style={{ color: 'var(--text-muted)' }}>
               <Clock size={12} /> {formatDate(doc.created_at, doc.date_label, lang)}
             </div>
             
