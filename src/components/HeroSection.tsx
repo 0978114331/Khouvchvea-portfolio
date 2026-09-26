@@ -95,7 +95,11 @@ export function HeroSection({ hero, visitorCount }: { hero: Hero; visitorCount: 
 
       <div className="flex flex-1 justify-center animate-fade-right relative w-full mt-8 lg:mt-0 z-0">
         <div className="w-full max-w-[500px]" style={{ filter: 'drop-shadow(0 0px 40px rgba(59,130,246,0.3))' }}>
-          <CyberNetwork3D profileImage={hero.profile_image_url || 'https://i.ibb.co/ycLc9HHj/IMG-0620.jpg'} />
+          <CyberNetwork3D 
+            profileImage={hero.profile_image_url} 
+            projectsCount="12+" 
+            experienceYears="2+ Yrs" 
+          />
         </div>
       </div>
 
