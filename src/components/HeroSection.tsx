@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Compass, MessageCircle, ChevronDown } from 'lucide-react';
 import { useApp } from '@/lib/app-context';
 import type { Hero } from '@/lib/supabase';
+import CyberNetwork3D from './CyberNetwork3D';
 
 export function HeroSection({ hero, visitorCount }: { hero: Hero; visitorCount: number }) {
   const { lang, t } = useApp();
@@ -93,13 +94,8 @@ export function HeroSection({ hero, visitorCount }: { hero: Hero; visitorCount: 
       </div>
 
       <div className="flex flex-1 justify-center animate-fade-right relative w-full mt-8 lg:mt-0 z-0">
-        <div className="animate-float max-w-[320px] sm:max-w-[420px]" style={{ filter: 'drop-shadow(0 30px 50px rgba(59,130,246,0.3))' }}>
-          <img
-            src={hero.profile_image_url}
-            alt={name}
-            className="w-full h-auto object-contain"
-            style={{ maskImage: 'linear-gradient(to bottom, black 75%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to bottom, black 75%, transparent 100%)' }}
-          />
+        <div className="w-full max-w-[500px]" style={{ filter: 'drop-shadow(0 0px 40px rgba(59,130,246,0.3))' }}>
+          <CyberNetwork3D profileImage={hero.profile_image_url || 'https://i.ibb.co/ycLc9HHj/IMG-0620.jpg'} />
         </div>
       </div>
 
